@@ -21,6 +21,14 @@ internal static unsafe class EuropeanRecruitmentAdmissionStub
     internal const int AbortDelta = 0x2C;
     internal const int ActiveOuterFrameBytes = 112; // entryRFLAGS + originalRAX + six low128 XMMs.
 
+    // A separate, opt-in SAME-owner displacement. The real owner must capture and
+    // claim all63 bytes, not supply this suffix from an unowned continuation.
+    internal const int ConversionDisplacedBytes = 63;
+    internal const int TraceCellBytes = 32;
+    internal const int TraceStateOffset = 0, TraceRecordOffset = 8;
+    internal const int TraceSlotOffset = 16, TraceNextTypeOffset = 20, TraceTokenOffset = 24;
+    internal const int TraceEntered = 1, TraceCompleted = 3, TraceTainted = 4;
+
     internal const X64SmartCPUContextRegs OfficialRegisters =
         X64SmartCPUContextRegs.Volatile | X64SmartCPUContextRegs.RDI | X64SmartCPUContextRegs.RBP;
 
@@ -136,6 +144,160 @@ internal static unsafe class EuropeanRecruitmentAdmissionStub
         Replay(a);
         a.AddUnrestrictedJmp(continueAt);
     }
+
+    // Private lowering only. Before exposing this generator, the SAME real owner
+    // must admit exactly63 current bytes/ten instructions and the expanded ingress
+    // and coexistence contract. This is not permission to bypass48 unowned bytes.
+    // The aligned, writable cell is private process-lived native storage retained
+    // with this owner. A closed caller initializes it once per attempt and binds its
+    // nonzero token to this thread/call/owner/current-world BEFORE final admission.
+    // The caller owns exclusive single-writer access through terminal readback; no
+    // concurrent reinitialization/taint writer is allowed. State checks are NOT an
+    // atomic ownership acquisition, and Completed does not merge concurrent bits.
+    // A token is correlation data, not a world capability. No caller/native pointer
+    // is persisted. No entry/settlement/provider API is installed by this prototype.
+    //
+    // Allow means entry authorization only. Entered is written before the first
+    // scheduling slice read, Completed after allfive stores, never in Dispatch.
+    // A stale/tainted cell after Allow is protocol uncertainty, not an authority to
+    // refund an already published material charge or infer clean native refusal.
+    internal static void GenerateConversionTrace(Assembler a, ReadOnlySpan<Instruction> original,
+        ulong site, ulong continueAt, ulong abortAt, ulong activeFlagAddress, ulong traceCellAddress,
+        InlineHookGenerator legacyFrame, InlineHookGenerator activeFrame)
+    {
+        ValidateConversion(original, site, continueAt, abortAt);
+        if (a is null || legacyFrame is null || activeFrame is null) throw new ArgumentNullException(nameof(a));
+        if (activeFlagAddress == 0) throw new ArgumentOutOfRangeException(nameof(activeFlagAddress));
+        if (traceCellAddress == 0 || (traceCellAddress & 7) != 0 ||
+            traceCellAddress > ulong.MaxValue - TraceCellBytes)
+            throw new ArgumentOutOfRangeException(nameof(traceCellAddress));
+        if (IntPtr.Size != 8 || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            throw new PlatformNotSupportedException("This prototype uses the Windows-x64 context generator ABI.");
+
+        var active = a.CreateLabel();
+        var rejected = a.CreateLabel();
+        var noOwnedScope = a.CreateLabel();
+        var invalidTrace = a.CreateLabel();
+        a.pushfq();
+        a.push(rax);
+        a.mov(rax, activeFlagAddress);
+        a.cmp(__dword_ptr[rax], 0);
+        a.pop(rax);
+        a.jne(active);
+        a.popfq();
+        legacyFrame(a, ReadOnlySpan<Instruction>.Empty, continueAt);
+        Replay(a);
+        ReplayConversionSlice(a);
+        a.AddUnrestrictedJmp(continueAt);
+
+        a.Label(ref active);
+        a.push(rax);
+        a.sub(rsp, 96);
+        a.movdqu(__xmmword_ptr[rsp], xmm0);
+        a.movdqu(__xmmword_ptr[rsp + 16], xmm1);
+        a.movdqu(__xmmword_ptr[rsp + 32], xmm2);
+        a.movdqu(__xmmword_ptr[rsp + 48], xmm3);
+        a.movdqu(__xmmword_ptr[rsp + 64], xmm4);
+        a.movdqu(__xmmword_ptr[rsp + 80], xmm5);
+        a.cld();
+        a.xor(eax, eax);
+        activeFrame(a, ReadOnlySpan<Instruction>.Empty, continueAt);
+        a.cmp(rax, (int)EuropeanRecruitmentBranch.NoOwnedScope);
+        a.je(noOwnedScope);
+        a.cmp(rax, 1);
+        a.jne(rejected);
+        // Allscratch effects below are behind explicit owned Allow. Neither the
+        // dormant nor foreign/no-TLS branch touches the owned attempt's trace.
+        a.mov(rax, traceCellAddress);
+        a.cmp(__dword_ptr[rax + TraceStateOffset], 0);
+        a.jne(invalidTrace);
+        a.cmp(__qword_ptr[rax + TraceTokenOffset], 0);
+        a.je(invalidTrace);
+        RestoreOuter(a);
+        Replay(a);
+        MarkConversionEntered(a, traceCellAddress);
+        ReplayConversionSlice(a);
+        // No managed call, allocation, logging, new validation or native helper
+        // occurs between Entered and Completed. These MOV/PUSH/POP instructions
+        // preserve the post-prefix flags and the slice's real resulting RAX/RSP.
+        a.push(rax);
+        a.mov(rax, traceCellAddress);
+        a.mov(__dword_ptr[rax + TraceStateOffset], TraceCompleted);
+        a.pop(rax);
+        a.AddUnrestrictedJmp(continueAt);
+
+        a.Label(ref invalidTrace);
+        a.or(__dword_ptr[rax + TraceStateOffset], TraceTainted);
+        a.Label(ref rejected);
+        RestoreOuter(a);
+        a.AddUnrestrictedJmp(abortAt);
+
+        a.Label(ref noOwnedScope);
+        RestoreOuter(a);
+        legacyFrame(a, ReadOnlySpan<Instruction>.Empty, continueAt);
+        Replay(a);
+        ReplayConversionSlice(a);
+        a.AddUnrestrictedJmp(continueAt);
+    }
+
+    private static void MarkConversionEntered(Assembler a, ulong traceCellAddress)
+    {
+        a.push(rax);
+        a.mov(rax, traceCellAddress);
+        a.mov(__qword_ptr[rax + TraceRecordOffset], rbx);
+        a.mov(__dword_ptr[rax + TraceSlotOffset], edi);
+        a.mov(__dword_ptr[rax + TraceNextTypeOffset], r9d);
+        a.mov(__dword_ptr[rax + TraceStateOffset], TraceEntered);
+        a.pop(rax);
+    }
+
+    private static void ReplayConversionSlice(Assembler a)
+    {
+        a.movsxd(rax, __dword_ptr[rbx + 0x72C]);
+        a.mov(__word_ptr[rbx + 0x922], r9w);
+        a.mov(__word_ptr[rbx + 0x924], cx);
+        a.mov(__dword_ptr[rbx + 0x918], 0x6D);
+        a.mov(__word_ptr[rbx + 0x986], (ushort)0x100);
+        a.mov(__word_ptr[rbx + 0x9CA], si);
+    }
+
+    private static void ValidateConversion(ReadOnlySpan<Instruction> x, ulong site, ulong next, ulong abort)
+    {
+        if (site > ulong.MaxValue - ConversionDisplacedBytes ||
+            next != site + ConversionDisplacedBytes || x.Length != 10)
+            throw new ArgumentException("Exact63-byte same-owner conversion displacement required.");
+        Validate(x.Slice(0, 4), site, site + DisplacedBytes, abort);
+        int[] lengths = { 7, 8, 7, 10, 9, 7 };
+        for (int i = 4; i < x.Length; i++)
+        {
+            if (x[i].IP != x[i - 1].NextIP || x[i].Length != lengths[i - 4] ||
+                x[i].HasLockPrefix || x[i].HasRepPrefix || x[i].HasRepnePrefix ||
+                x[i].SegmentPrefix != Register.None)
+                throw new ArgumentException("Exact whole conversion instructions required.");
+        }
+        if (x[4].Mnemonic != Mnemonic.Movsxd || x[4].Op0Kind != OpKind.Register ||
+            x[4].Op0Register != Register.RAX || x[4].Op1Kind != OpKind.Memory ||
+            !ConversionMemory(x[4], 0x72C) ||
+            !StoreRegister(x[5], 0x922, Register.R9W) ||
+            !StoreRegister(x[6], 0x924, Register.CX) ||
+            !StoreImmediate(x[7], 0x918, OpKind.Immediate32, 0x6D) ||
+            !StoreImmediate(x[8], 0x986, OpKind.Immediate16, 0x100) ||
+            !StoreRegister(x[9], 0x9CA, Register.SI) || x[9].NextIP != next)
+            throw new ArgumentException("Qualified native conversion scheduling slice required.");
+    }
+
+    private static bool ConversionMemory(Instruction x, ulong displacement) =>
+        x.MemoryBase == Register.RBX && x.MemoryIndex == Register.None &&
+        x.MemoryDisplacement64 == displacement && !x.IsIPRelativeMemoryOperand;
+
+    private static bool StoreRegister(Instruction x, ulong displacement, Register source) =>
+        x.Mnemonic == Mnemonic.Mov && x.Op0Kind == OpKind.Memory &&
+        ConversionMemory(x, displacement) && x.Op1Kind == OpKind.Register && x.Op1Register == source;
+
+    private static bool StoreImmediate(Instruction x, ulong displacement, OpKind kind, ulong value) =>
+        x.Mnemonic == Mnemonic.Mov && x.Op0Kind == OpKind.Memory &&
+        ConversionMemory(x, displacement) && x.Op1Kind == kind &&
+        (kind == OpKind.Immediate16 ? x.Immediate16 : x.Immediate32) == value;
 
     private static void RestoreOuter(Assembler a)
     {

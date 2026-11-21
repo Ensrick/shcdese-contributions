@@ -41,13 +41,26 @@ identity; binary runs verify both the copied file and the loaded assembly checks
 
 ## Scope and guarded-frame checks
 
-`GuardedFrameChecks.csproj` runs 38 groups using five exact public dependency DLLs.
-The eight machine groups execute generated code and actual RedBird contexts on
-owned pages, covering legacy replay, register/flag/SIMD restoration, abort routing,
+`GuardedFrameChecks.csproj` runs 44 groups using five exact public dependency DLLs.
+The fourteen frame groups cover generated code, actual RedBird contexts on owned
+pages and validation, including legacy replay, register/flag/SIMD restoration, abort routing,
 nested owned calls and the default result when a guarded callback throws before
 dispatch. The source retains a 15-byte instruction test prefix; no game image,
 dump or executable is an input. CLR-owned callback thunks remain pinned until the
 fixture releases them. CI supplies the finite process deadline.
+
+Six groups cover a separate expanded-frame prototype: it validates ten complete
+instructions across a 63-byte displacement and records entry/completion around
+five scheduling stores. The owned cell requires exclusive single-writer use and
+terminal comparison with the caller's private expected token; a nonzero token
+alone is not caller identity. No managed callback occurs between trace markers.
+Dormant and unowned routes do not write that trace. These tests use assembled
+instructions and owned record buffers, not a game image or code dump.
+
+Activating the expanded route still requires actual whole-range ownership,
+ingress, current-world/reset and terminal binding. Relocated memory operations
+also change fault PCs; buffer tests do not establish fault/unwind equivalence.
+The previously qualified 15-byte generator remains unchanged.
 
 Run this suite through `tools/Invoke-QualificationChecks.ps1 -Suite GuardedFrame`
 with `Mode=Binary` and the verified `PublicExtenderDir`. Input and loaded-provider

@@ -51,9 +51,9 @@
     },
     {
       "path": "candidate/EuropeanRecruitmentAdmissionStub.cs",
-      "bytes": 9544,
-      "sha256CRLF": "9831475e5229257eac6425070beab03bb942554ec264c0f575520ff46e1343b8",
-      "sha256LF": "1434d83600d27e92983dcd4c03ac2b6896c8ca7a6fd5d68859f8cd0f92f496f2"
+      "bytes": 17993,
+      "sha256CRLF": "f24a9635e94fcf35c074ce8089219bfa62a6ce57b1041aba42adae8c7eef624c",
+      "sha256LF": "449c52877cc5e8abca10296e56f34cde67997a4fe52aa27f38eabf1593dc021c"
     },
     {
       "path": "fixture/FinalAdmissionCases.cs",
@@ -65,11 +65,11 @@
     },
     {
       "path": "reentrancy-source-1/fixture/Program.cs",
-      "bytes": 56554,
-      "sha256CRLF": "f3893c1c8eac08447a39271151eb6899b0dafe302b75e64f50da80d4d13648eb",
-      "sha256LF": "da98271ad0b1fc0cbe197c6505ce1178a314f80cf79456c485dfc8e11f712dbe",
-      "originalFrozenSha256CRLF": "fab29ae00d70de5d6dd71b7e9d7410c4b23a8807c769ae3c07ea70ea80e1a644",
-      "qualificationDelta": "Root adds loaded-five-provider SHA/MVID and actual CLR/pointer identity before unchanged38groups; no group bodies or native fixture changed."
+      "bytes": 80315,
+      "sha256CRLF": "ac7a77f38d9156cf35020ef2853cf8ac65e457fd1ed6b6835eb9aecfd3a2bf20",
+      "sha256LF": "a2336e5a48c2eb390c76da44aabbd6986baf8517d89d82cfabe2fc43cf5b0002",
+      "originalFrozenSha256CRLF": "20763e79670192cff97cc34752609cc0b1748313e0bd6ec3acec3ede14ff47c8",
+      "qualificationDelta": "Root retains loaded-five-provider SHA/MVID and CLR/pointer prologue before the unchanged44-group candidate; no group bodies changed."
     }
   ],
   "publicCoreArchive": {
@@ -196,7 +196,13 @@
     "Stub.OwnedPredicateExceptionRestoresStateBeforeAbort",
     "Stub.InvalidPrefixAndBoundsEmitNothing",
     "Stub.OwnedRecursiveGeneratedFrameAbortsWithoutInnerTail",
-    "Stub.GuardSuppressedPreDispatchFaultDefaultsToAbort"
+    "Stub.GuardSuppressedPreDispatchFaultDefaultsToAbort",
+    "Trace.OwnedAllowRecordsExactSchedulingStores",
+    "Trace.DormantAndNoScopeMatchIndependent63ByteBaseline",
+    "Trace.RejectionLeavesTraceAndRecordsUntouched",
+    "Trace.RecursiveDispatchPreventsOuterCompletion",
+    "Trace.RepeatedOrTamperedCellRefusesScheduling",
+    "Trace.InvalidDisplacementEmitsNothing"
   ],
-  "expectedGuardedGroups": 38
+  "expectedGuardedGroups": 44
 }

@@ -77,7 +77,13 @@ internal static unsafe partial class Program
             ("Stub.OwnedPredicateExceptionRestoresStateBeforeAbort", () => Active(false, true)),
             ("Stub.InvalidPrefixAndBoundsEmitNothing", InvalidInputs),
             ("Stub.OwnedRecursiveGeneratedFrameAbortsWithoutInnerTail", RecursiveGeneratedFrame),
-            ("Stub.GuardSuppressedPreDispatchFaultDefaultsToAbort", GuardSuppressedFrameFault)
+            ("Stub.GuardSuppressedPreDispatchFaultDefaultsToAbort", GuardSuppressedFrameFault),
+            ("Trace.OwnedAllowRecordsExactSchedulingStores", TraceAllowed),
+            ("Trace.DormantAndNoScopeMatchIndependent63ByteBaseline", TraceLegacyRoutes),
+            ("Trace.RejectionLeavesTraceAndRecordsUntouched", TraceRejected),
+            ("Trace.RecursiveDispatchPreventsOuterCompletion", TraceNested),
+            ("Trace.RepeatedOrTamperedCellRefusesScheduling", TraceInvalidCells),
+            ("Trace.InvalidDisplacementEmitsNothing", TraceInvalidGenerators)
         }).ToArray();
         var failures = new List<string>();
         foreach (var test in cases)
@@ -262,6 +268,214 @@ internal static unsafe partial class Program
         ulong entry = SeedFlags | (direction ? 0x400UL : 0);
         Equal(entry & PreservedFlags, fixture.Flags & PreservedFlags, "Denied generated frame did not restore original flags.");
         CheckSimd(fixture, 0);
+    }
+
+    // Trace fixtures own exactly one64KiB code page and one64KiB data page.
+    // Sequential baseline snapshots avoid having two trace fixtures alive together.
+    private sealed class TraceLegacySnapshot
+    {
+        internal ulong[] Registers = new ulong[16], Vectors = new ulong[32];
+        internal ulong Flags;
+    }
+    private static void CheckTraceMachine(Fixture fixture, bool direction, bool activeFrame, bool scheduled)
+    {
+        CheckCommon(fixture, activeFrame);
+        for (int i = 0; i < Gp.Length; i++)
+        {
+            if (i == 4) continue;
+            ulong expected = i == 0 && scheduled ? fixture.ExpectedSliceRax :
+                i == 1 && scheduled ? 0 : i == 3 ? (scheduled ? fixture.RecordAddress : fixture.RecordManager) :
+                i == 9 ? FinalR9 : SeedGp(i);
+            Equal(expected, fixture.Register(i), "Trace frame register: " + Gp[i]);
+        }
+        if (scheduled) Equal(0x44UL | (direction ? 0x400UL : 0), fixture.Flags & XorFlags,
+            "Trace writes changed the scheduling slice's defined replay flags.");
+        else Equal((SeedFlags | (direction ? 0x400UL : 0)) & PreservedFlags, fixture.Flags & PreservedFlags,
+            "Trace refusal did not restore incoming flags.");
+        CheckSimd(fixture, activeFrame ? 0 : 6);
+    }
+    private static void TraceAllowed()
+    {
+        foreach (bool direction in new[] { false, true })
+        {
+            using var fixture = new Fixture(true, false, traceMode: true);
+            fixture.CollectAndCheckRoots();
+            ulong token = fixture.TraceToken;
+            Check(token != 0 && fixture.TraceState == 0, "Trace did not start with a fresh correlated cell.");
+            var result = fixture.RunScoped(direction, true, false);
+            Outcome(result, EuropeanRecruitmentAttemptKind.NativeReturned, EuropeanRecruitmentFailure.None);
+            Check(fixture.Marker == ContinueMarker && fixture.LegacyCalls == 1 && fixture.ActiveCalls == 1 &&
+                fixture.AdmissionCalls == 1 && fixture.NativeCalls == 1,
+                "Trace allow changed the existing once-only admission/native order.");
+            Check(fixture.TraceState == EuropeanRecruitmentAdmissionStub.TraceCompleted && fixture.TraceToken == token,
+                "Scheduling completion or caller-owned trace token changed.");
+            Equal(fixture.RecordAddress, fixture.TraceRecord, "Trace did not capture the exact owned native record address.");
+            Check(fixture.TraceUnitSlot == 37 && fixture.TraceNextType == 76,
+                "Trace did not capture native EDI/R9D scheduling operands.");
+            fixture.CheckRecordStores(true); CheckTraceMachine(fixture, direction, true, true);
+            Check(fixture.ActiveFlagValue == 0 && !EuropeanRecruitmentInvocation.HasOwnedScope,
+                "Trace allow did not retire demand/TLS.");
+        }
+    }
+    private static TraceLegacySnapshot ObserveTraceLegacy(bool active, bool independent, bool direction)
+    {
+        using var fixture = new Fixture(active, independent, traceMode: true);
+        fixture.CollectAndCheckRoots();
+        byte[] before = fixture.SnapshotTrace(); fixture.Run(direction);
+        Check(fixture.Marker == ContinueMarker && fixture.LegacyCalls == 1 && fixture.ActiveCalls == 0 &&
+            fixture.AdmissionCalls == 0 && fixture.NativeCalls == 0,
+            "Dormant/no-owned trace route changed ordinary legacy publication.");
+        Check(fixture.SnapshotTrace().SequenceEqual(before), "Dormant/no-owned route wrote the trace cell.");
+        fixture.CheckRecordStores(true); CheckTraceMachine(fixture, direction, false, true);
+        var result = new TraceLegacySnapshot { Flags = fixture.Flags & XorFlags };
+        for (int i = 0; i < Gp.Length; i++)
+            if (i != 4) result.Registers[i] = i == 3 ? fixture.Register(i) - fixture.RecordManager : fixture.Register(i);
+        // Legacy's volatile SIMD values have no preservation promise. Compare its
+        // actual independent baseline for nonvolatile low128 only, as in old cases.
+        for (int i = 6; i < Simd.Length; i++)
+        { result.Vectors[i * 2] = fixture.Vector(i, 0); result.Vectors[i * 2 + 1] = fixture.Vector(i, 1); }
+        return result;
+    }
+    private static void TraceLegacyRoutes()
+    {
+        // The existing unwrapped legacy baseline is qualified with DF clear.
+        // Incoming DF=true is tested only behind the active wrapper's CLD path.
+        foreach (bool direction in new[] { false })
+        {
+            TraceLegacySnapshot baseline = ObserveTraceLegacy(false, true, direction);
+            foreach (bool active in new[] { false, true })
+            {
+                TraceLegacySnapshot proposed = ObserveTraceLegacy(active, false, direction);
+                Check(baseline.Registers.SequenceEqual(proposed.Registers) && baseline.Flags == proposed.Flags &&
+                    baseline.Vectors.SequenceEqual(proposed.Vectors),
+                    "Trace dormant/no-TLS path differs from independent actual RedBird ten-instruction baseline.");
+            }
+        }
+        TraceForeignNoScope();
+    }
+    private static void TraceForeignNoScope()
+    {
+        // Main owns TLS; this one foreign raw generated call sees no TLS despite
+        // the active native flag. It may follow Vanilla but cannot forge our cell.
+        var fixture = new Fixture(true, false, traceMode: true);
+        Thread worker = null; Exception workerError = null; bool foreignNoTls = false;
+        try
+        {
+            byte[] trace = fixture.SnapshotTrace();
+            var outer = new ScopeCase();
+            var result = outer.Run(candidate => false, current => {
+                Check(EuropeanRecruitmentInvocation.HasOwnedScope, "Main thread did not own the outer attempt.");
+                worker = new Thread(() => {
+                    try { foreignNoTls = !EuropeanRecruitmentInvocation.HasOwnedScope; fixture.Run(false); }
+                    catch (Exception error) { workerError = error; }
+                }) { IsBackground = true };
+                worker.Start();
+                if (!worker.Join(3000)) ExitRetainingTracePages(fixture, "Foreign trace worker exceeded its bounded join.");
+                if (workerError != null) throw new InvalidOperationException("Foreign raw trace fixture failed.", workerError);
+                current.Dispatch(); return 0;
+            });
+            Outcome(result, EuropeanRecruitmentAttemptKind.RejectedBeforeConversion, EuropeanRecruitmentFailure.AdmissionRejected);
+            Check(foreignNoTls && fixture.ActiveFlagValue == 1 && fixture.ActiveCalls == 0 && fixture.LegacyCalls == 1 &&
+                fixture.AdmissionCalls == 0 && fixture.NativeCalls == 0 && fixture.Marker == ContinueMarker,
+                "Actual foreign no-TLS frame borrowed the outer admission or changed its ordinary route.");
+            Check(fixture.SnapshotTrace().SequenceEqual(trace) && fixture.TraceState == 0,
+                "A foreign unowned call forged the main attempt's Entered/Completed cell.");
+            fixture.CheckRecordStores(true); CheckTraceMachine(fixture, false, false, true);
+            Check(!EuropeanRecruitmentInvocation.HasOwnedScope && worker.Join(0), "Foreign trace did not close or main TLS leaked.");
+        }
+        finally
+        {
+            // No timeout assertion may unwind through native page disposal while
+            // the worker can still execute them. A failed join cannot become PASS.
+            if (worker?.IsAlive == true) ExitRetainingTracePages(fixture, "Foreign worker remains live during trace cleanup.");
+            fixture.Dispose();
+        }
+    }
+    private static void ExitRetainingTracePages(Fixture fixture, string message)
+    {
+        Console.Error.WriteLine("FAIL Trace.ForeignNoScope :: " + message);
+        GC.KeepAlive(fixture); // The worker closure also retains its fixture/delegates.
+        Environment.Exit(2); // Owned fixture process only; OS teardown releases the pages.
+        throw new InvalidOperationException("Owned process exit unexpectedly returned.");
+    }
+    private static void TraceRejected()
+    {
+        foreach (bool direction in new[] { false, true })
+        foreach (bool predicateThrows in new[] { false, true })
+        {
+            using var fixture = new Fixture(true, false, traceMode: true);
+            byte[] trace = fixture.SnapshotTrace();
+            var result = fixture.RunScoped(direction, false, predicateThrows);
+            Outcome(result, EuropeanRecruitmentAttemptKind.RejectedBeforeConversion,
+                predicateThrows ? EuropeanRecruitmentFailure.AdmissionFailed : EuropeanRecruitmentFailure.AdmissionRejected);
+            Check(fixture.Marker == AbortMarker && fixture.LegacyCalls == 1 && fixture.ActiveCalls == 1 && fixture.AdmissionCalls == 1,
+                "Trace rejection changed legacy/admission pairing.");
+            Check(fixture.SnapshotTrace().SequenceEqual(trace), "Rejected admission wrote the trace cell.");
+            fixture.CheckRecordStores(false); CheckTraceMachine(fixture, direction, true, false);
+            Check(!EuropeanRecruitmentInvocation.HasOwnedScope && fixture.ActiveFlagValue == 0, "Rejected trace leaked TLS/demand.");
+        }
+    }
+    private static void TraceNested()
+    {
+        // This new63-byte case uses a direct recursive Dispatch to keep exactly
+        // two owned pages. The old38 retain separate-page generated reentry proof.
+        using var fixture = new Fixture(true, false, traceMode: true);
+        int innerLegacy = 0, innerReads = 0;
+        EuropeanRecruitmentBranch branch = EuropeanRecruitmentBranch.Allow;
+        fixture.DuringLegacy = () => {
+            branch = EuropeanRecruitmentInvocation.Dispatch(IntPtr.Zero, 37, 3,
+                frame => innerLegacy++, frame => { innerReads++; return default; });
+        };
+        byte[] trace = fixture.SnapshotTrace();
+        var result = fixture.RunScoped(false, true, false);
+        Outcome(result, EuropeanRecruitmentAttemptKind.UnknownNativeEffects, EuropeanRecruitmentFailure.UnexpectedSelection);
+        Check(branch == EuropeanRecruitmentBranch.Abort && innerLegacy == 0 && innerReads == 0 &&
+            fixture.Marker == AbortMarker && fixture.AdmissionCalls == 0,
+            "Recursive dispatch reached a nested callback, outer admission or scheduling continuation.");
+        Check(fixture.SnapshotTrace().SequenceEqual(trace), "Poisoned outer call wrote trace completion.");
+        fixture.CheckRecordStores(false); CheckTraceMachine(fixture, false, true, false);
+        Check(!EuropeanRecruitmentInvocation.HasOwnedScope && fixture.ActiveFlagValue == 0, "Nested trace leaked TLS/demand.");
+    }
+    private static void TraceInvalidCells()
+    {
+        foreach (int state in new[] { 0, EuropeanRecruitmentAdmissionStub.TraceEntered,
+            EuropeanRecruitmentAdmissionStub.TraceCompleted, EuropeanRecruitmentAdmissionStub.TraceTainted })
+        {
+            using var fixture = new Fixture(true, false, traceMode: true);
+            fixture.InitializeTraceCell(state, state == 0 ? 0UL : 0x1234UL);
+            byte[] before = fixture.SnapshotTrace();
+            var result = fixture.RunScoped(false, true, false);
+            Outcome(result, EuropeanRecruitmentAttemptKind.UnknownNativeEffects, EuropeanRecruitmentFailure.UnexpectedNativeReturn);
+            Check(fixture.Marker == AbortMarker && fixture.AdmissionCalls == 1 &&
+                fixture.TraceState == (state | EuropeanRecruitmentAdmissionStub.TraceTainted),
+                "Invalid trace phase/token did not taint/refuse after entry authorization.");
+            byte[] expected = (byte[])before.Clone();
+            Array.Copy(BitConverter.GetBytes(state | EuropeanRecruitmentAdmissionStub.TraceTainted), 0, expected, 0, 4);
+            Check(fixture.SnapshotTrace().SequenceEqual(expected), "Invalid trace mutated fields beyond its taint status.");
+            fixture.CheckRecordStores(false); CheckTraceMachine(fixture, false, true, false);
+        }
+        using var repeated = new Fixture(true, false, traceMode: true);
+        var first = repeated.RunScoped(false, true, false);
+        Outcome(first, EuropeanRecruitmentAttemptKind.NativeReturned, EuropeanRecruitmentFailure.None);
+        repeated.CheckRecordStores(true);
+        repeated.ChangeRecordSentinel(); byte[] record = repeated.SnapshotRecord(), traceBefore = repeated.SnapshotTrace();
+        var second = repeated.RunScoped(false, true, false);
+        Outcome(second, EuropeanRecruitmentAttemptKind.UnknownNativeEffects, EuropeanRecruitmentFailure.UnexpectedNativeReturn);
+        Check(repeated.Marker == AbortMarker && repeated.TraceState ==
+            (EuropeanRecruitmentAdmissionStub.TraceCompleted | EuropeanRecruitmentAdmissionStub.TraceTainted),
+            "Repeated uncleared cell was reused as a fresh scheduling trace.");
+        byte[] traceExpected = (byte[])traceBefore.Clone();
+        Array.Copy(BitConverter.GetBytes(EuropeanRecruitmentAdmissionStub.TraceCompleted |
+            EuropeanRecruitmentAdmissionStub.TraceTainted), 0, traceExpected, 0, 4);
+        Check(repeated.SnapshotTrace().SequenceEqual(traceExpected) && repeated.SnapshotRecord().SequenceEqual(record),
+            "Repeated trace reran scheduling stores or replaced the original receipt.");
+        CheckTraceMachine(repeated, false, true, false);
+        Check(!EuropeanRecruitmentInvocation.HasOwnedScope && repeated.ActiveFlagValue == 0, "Repeated trace leaked TLS/demand.");
+    }
+    private static void TraceInvalidGenerators()
+    {
+        using var fixture = new Fixture(false, false, traceMode: true);
+        fixture.CheckInvalidTraceGenerators();
     }
 
     private static void InvalidInputs()
@@ -565,6 +779,19 @@ internal static unsafe partial class Program
         private const int Registers = 80, Vectors = 208, LeafVectors = 480;
         private const int FirstGuardOffset = 576, LastGuardOffset = 584;
         private IntPtr memory;
+        private IntPtr recordMemory;
+        private readonly bool traceMode;
+        private byte[] originalBytes, initialRecordBytes;
+        private const int TraceCell = 0x8300, TraceSlot = 37, RecordStride = 0x490;
+        private const int RecordReadSeed = unchecked((int)0x81234567);
+        private const ulong TraceTokenSeed = 0x61728394ABCDEF01UL;
+        internal ulong RecordManager => unchecked((ulong)recordMemory.ToInt64());
+        internal ulong RecordAddress => RecordManager + TraceSlot * RecordStride;
+        internal int TraceState => Marshal.ReadInt32(At(TraceCell + EuropeanRecruitmentAdmissionStub.TraceStateOffset));
+        internal ulong TraceRecord => unchecked((ulong)Marshal.ReadInt64(At(TraceCell + EuropeanRecruitmentAdmissionStub.TraceRecordOffset)));
+        internal int TraceUnitSlot => Marshal.ReadInt32(At(TraceCell + EuropeanRecruitmentAdmissionStub.TraceSlotOffset));
+        internal int TraceNextType => Marshal.ReadInt32(At(TraceCell + EuropeanRecruitmentAdmissionStub.TraceNextTypeOffset));
+        internal ulong TraceToken => unchecked((ulong)Marshal.ReadInt64(At(TraceCell + EuropeanRecruitmentAdmissionStub.TraceTokenOffset)));
         private X64InlineHook owner;
         private NativeEntry invoke;
         private ClobberLeaf clobber;
@@ -600,18 +827,29 @@ internal static unsafe partial class Program
         internal ulong Vector(int index, int half) => Read64(Vectors + index * 16 + half * 8);
         internal ulong LeafSimd(int index, int half) => Read64(LeafVectors + index * 16 + half * 8);
 
-        internal Fixture(bool active, bool independentBaseline, bool guardBeforeDispatch = false)
+        internal Fixture(bool active, bool independentBaseline, bool guardBeforeDispatch = false, bool traceMode = false)
         {
-            this.active = active; this.independentBaseline = independentBaseline;
+            this.active = active; this.independentBaseline = independentBaseline; this.traceMode = traceMode;
             memory = VirtualAlloc(IntPtr.Zero, (UIntPtr)Bytes, 0x3000, 0x40);
             if (memory == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error(), "Owned fixture allocation failed.");
             try
             {
-                Marshal.Copy(Prefix, 0, At(Site), Prefix.Length);
+                if (traceMode)
+                {
+                    // A separate owned data page; no game manager, borrowed pointer or game bytes.
+                    recordMemory = VirtualAlloc(IntPtr.Zero, (UIntPtr)Bytes, 0x3000, 0x04);
+                    if (recordMemory == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error(), "Owned record page allocation failed.");
+                    InitializeRecordPage(); InitializeTraceCell();
+                    originalBytes = AssembleTraceOriginal();
+                    Check(originalBytes.Length == EuropeanRecruitmentAdmissionStub.ConversionDisplacedBytes,
+                        "Owned assembler did not emit exactly63 bytes for ten instructions.");
+                }
+                else originalBytes = Prefix;
+                Marshal.Copy(originalBytes, 0, At(Site), originalBytes.Length);
                 // Constructor reads ONLY our own prefix. No Compile/Generate/Enable
                 // is called on this owner; only its public frame/delegate facilities.
-                owner = new X64InlineHook(Address(Site), Prefix.Length, NullLogger.Instance, "owned-recruitment-fixture");
-                Check(owner.DisplacedByteCount == Prefix.Length, "Owned root decoded another displacement boundary.");
+                owner = new X64InlineHook(Address(Site), originalBytes.Length, NullLogger.Instance, "owned-recruitment-fixture");
+                Check(owner.DisplacedByteCount == originalBytes.Length, "Owned root decoded another displacement boundary.");
                 var options = new ContextHookOptions { Registers = X64SmartCPUContextRegs.Volatile | X64SmartCPUContextRegs.RDI | X64SmartCPUContextRegs.RBP };
                 Check((int)options.Registers == 0xF6D && (int)options.ErrorMode == 1 && (int)options.Placement == 1,
                     "The fixture requires the exact qualified legacy context options.");
@@ -651,21 +889,24 @@ internal static unsafe partial class Program
                 // Emitting these actual generators calls the real owner's PinDelegate.
                 // No fixture field retains either raw callback or generator delegate.
                 var body = new Assembler(64);
-                Instruction[] original = Decode(Prefix, Address(Site));
+                Instruction[] original = Decode(originalBytes, Address(Site));
+                int displaced = originalBytes.Length;
                 if (independentBaseline)
                 {
                     // Independent REAL RedBird replay: the helper receives the full
                     // decoded prefix, unlike the prototype's empty-frame composition.
-                    legacyFrame(body, original, Address(Site + Prefix.Length));
-                    body.AddUnrestrictedJmp(Address(Site + Prefix.Length));
+                    legacyFrame(body, original, Address(Site + displaced));
+                    body.AddUnrestrictedJmp(Address(Site + displaced));
                 }
+                else if (traceMode) EuropeanRecruitmentAdmissionStub.GenerateConversionTrace(body, original, Address(Site),
+                    Address(Site + displaced), Address(Site - 0x2C), Address(ActiveFlag), Address(TraceCell), legacyFrame, activeFrame);
                 else EuropeanRecruitmentAdmissionStub.Generate(body, original, Address(Site),
                     Address(Site + Prefix.Length), Address(Site - 0x2C), Address(ActiveFlag), legacyFrame, activeFrame);
                 Write(Stub, body, 0x1000);
                 Write(Leaf, MakeLeaf(), 0x1000);
                 Write(ContinueCapture, Capture(ContinueMarker), 0x1000);
                 Write(AbortCapture, Capture(AbortMarker), 0x1000);
-                WriteJump(Site + Prefix.Length, Address(ContinueCapture));
+                WriteJump(Site + displaced, Address(ContinueCapture));
                 WriteJump(Site - 0x2C, Address(AbortCapture));
                 Write(Entry, MakeEntry(), 0x1000);
                 if (!FlushInstructionCache(GetCurrentProcess(), memory, (UIntPtr)Bytes))
@@ -729,6 +970,7 @@ internal static unsafe partial class Program
             Marshal.WriteInt32(At(ActiveFlag), active ? 1 : 0);
             for (int i = 0; i < Gp.Length; i++) Marshal.WriteInt64(At(Input + i * 8), unchecked((long)SeedGp(i)));
             if (incomingRax.HasValue) Marshal.WriteInt64(At(Input), unchecked((long)incomingRax.Value));
+            if (traceMode) Marshal.WriteInt64(At(Input + 3 * 8), unchecked((long)RecordManager));
             for (int i = 0; i < Simd.Length; i++)
             {
                 ulong seed = SimdSeed + (ulong)i;
@@ -746,6 +988,99 @@ internal static unsafe partial class Program
             }
             finally { SetErrorMode(previous); }
             GC.KeepAlive(owner); GC.KeepAlive(clobber);
+        }
+
+        private byte[] AssembleTraceOriginal(int multiplier = 0x490, int state = 0x6D, int finalOffset = 0x9CA)
+        {
+            // Own assembler instructions only; no byte blob or decoding of a game image.
+            var a = new Assembler(64);
+            a.movsxd(rax, edi); a.imul(rcx, rax, multiplier); a.add(rbx, rcx); a.xor(ecx, ecx);
+            a.movsxd(rax, __dword_ptr[rbx + 0x72C]);
+            a.mov(__word_ptr[rbx + 0x922], r9w); a.mov(__word_ptr[rbx + 0x924], cx);
+            a.mov(__dword_ptr[rbx + 0x918], state); a.mov(__word_ptr[rbx + 0x986], (ushort)0x100);
+            a.mov(__word_ptr[rbx + finalOffset], si);
+            using var stream = new MemoryStream(); a.Assemble(new StreamCodeWriter(stream), Address(Site));
+            return stream.ToArray();
+        }
+        private IntPtr RecordAt(int offset) => IntPtr.Add(recordMemory, TraceSlot * RecordStride + offset);
+        private void InitializeRecordPage()
+        {
+            Check(TraceSlot * RecordStride + 0xA08 <= Bytes && TraceSlot * RecordStride >= 0,
+                "Highest owned record field/guard escaped its64KiB data page.");
+            Check((TraceCell & 7) == 0 && TraceCell >= ActiveFlag + 4 &&
+                TraceCell + EuropeanRecruitmentAdmissionStub.TraceCellBytes <= Bytes,
+                "Owned aligned trace cell escaped or overlapped live flag storage.");
+            Marshal.WriteInt32(RecordAt(0x72C), RecordReadSeed);
+            Marshal.WriteInt32(RecordAt(0x918), unchecked((int)0x55667788));
+            Marshal.WriteInt16(RecordAt(0x922), unchecked((short)0xA101));
+            Marshal.WriteInt16(RecordAt(0x924), unchecked((short)0xA202));
+            Marshal.WriteInt16(RecordAt(0x986), unchecked((short)0xA303));
+            Marshal.WriteInt16(RecordAt(0x9CA), unchecked((short)0xA404));
+            Marshal.WriteInt64(RecordAt(0x700), unchecked((long)Guard));
+            Marshal.WriteInt64(RecordAt(0xA00), unchecked((long)Guard));
+            initialRecordBytes = SnapshotRecord();
+        }
+        internal void InitializeTraceCell(int state = 0, ulong token = TraceTokenSeed)
+        {
+            Check(traceMode, "Trace initialization requires the owned trace fixture.");
+            for (int offset = 0; offset < EuropeanRecruitmentAdmissionStub.TraceCellBytes; offset += 8)
+                Marshal.WriteInt64(At(TraceCell + offset), 0);
+            Marshal.WriteInt32(At(TraceCell + EuropeanRecruitmentAdmissionStub.TraceStateOffset), state);
+            Marshal.WriteInt64(At(TraceCell + EuropeanRecruitmentAdmissionStub.TraceTokenOffset), unchecked((long)token));
+        }
+        internal byte[] SnapshotTrace()
+        {
+            var bytes = new byte[EuropeanRecruitmentAdmissionStub.TraceCellBytes];
+            Marshal.Copy(At(TraceCell), bytes, 0, bytes.Length); return bytes;
+        }
+        internal byte[] SnapshotRecord()
+        {
+            var bytes = new byte[Bytes]; Marshal.Copy(recordMemory, bytes, 0, bytes.Length); return bytes;
+        }
+        internal void ChangeRecordSentinel() => Marshal.WriteInt32(RecordAt(0x918), unchecked((int)0x7ABCDEF0));
+        internal void CheckRecordStores(bool scheduled)
+        {
+            byte[] expected = (byte[])initialRecordBytes.Clone();
+            int row = TraceSlot * RecordStride;
+            if (scheduled)
+            {
+                Array.Copy(BitConverter.GetBytes(0x6D), 0, expected, row + 0x918, 4);
+                Array.Copy(BitConverter.GetBytes(unchecked((ushort)FinalR9)), 0, expected, row + 0x922, 2);
+                Array.Copy(BitConverter.GetBytes((ushort)0), 0, expected, row + 0x924, 2);
+                Array.Copy(BitConverter.GetBytes((ushort)0x100), 0, expected, row + 0x986, 2);
+                Array.Copy(BitConverter.GetBytes(unchecked((ushort)SeedGp(6))), 0, expected, row + 0x9CA, 2);
+            }
+            Check(SnapshotRecord().SequenceEqual(expected), "Owned scheduling stores or surrounding record guards changed unexpectedly.");
+        }
+        internal ulong ExpectedSliceRax => unchecked((ulong)(long)RecordReadSeed);
+        internal void CheckInvalidTraceGenerators()
+        {
+            Check(traceMode, "Trace validator requires own assembled ten-instruction span.");
+            var options = new ContextHookOptions { Registers = EuropeanRecruitmentAdmissionStub.FinalAdmissionRegisters };
+            ContextHookDelegate callback = context => { context.Pointer->RAX = 0; };
+            InlineHookGenerator frame = ContextStub.CreateGenerator(owner,
+                ContextStub.Guard(callback, options, Address(Site), NullLogger.Instance, "invalid-trace-fixture"), options);
+            Instruction[] original = Decode(originalBytes, Address(Site));
+            void Refuse(Instruction[] instructions, ulong site, ulong next, ulong abort, ulong flag, ulong cell)
+            {
+                var a = new Assembler(64); bool refused = false;
+                try { EuropeanRecruitmentAdmissionStub.GenerateConversionTrace(a, instructions, site, next, abort, flag, cell, frame, frame); }
+                catch (ArgumentException) { refused = true; }
+                Check(refused && a.Instructions.Count == 0, "Invalid conversion span emitted partial code or was accepted.");
+            }
+            ulong site = Address(Site), next = Address(Site + 63), abort = Address(Site - 0x2C), flag = Address(ActiveFlag), cell = Address(TraceCell);
+            Refuse(Decode(AssembleTraceOriginal(multiplier: 0x491), site), site, next, abort, flag, cell);
+            Refuse(Decode(AssembleTraceOriginal(state: 0x6E), site), site, next, abort, flag, cell);
+            Refuse(Decode(AssembleTraceOriginal(finalOffset: 0x9CC), site), site, next, abort, flag, cell);
+            Refuse(original.Take(9).ToArray(), site, next, abort, flag, cell);
+            Refuse(original, site, next - 1, abort, flag, cell);
+            Refuse(original, site, next, abort + 1, flag, cell);
+            Refuse(original, site + 1, next, abort, flag, cell);
+            Refuse(original, site, next, abort, 0, cell);
+            Refuse(original, site, next, abort, flag, 0);
+            Refuse(original, site, next, abort, flag, cell + 1);
+            Refuse(original, site, next, abort, flag, ulong.MaxValue - 15);
+            CheckRootUntouched();
         }
 
         private Assembler MakeEntry()
@@ -812,8 +1147,8 @@ internal static unsafe partial class Program
         internal void CheckRootUntouched()
         {
             Check(owner != null && !owner.IsInstalled && owner.StubAddress == IntPtr.Zero, "The root must never be generated or installed.");
-            byte[] live = new byte[Prefix.Length]; Marshal.Copy(At(Site), live, 0, live.Length);
-            Check(live.SequenceEqual(Prefix), "Fixture generation changed the owned original prefix.");
+            byte[] live = new byte[originalBytes.Length]; Marshal.Copy(At(Site), live, 0, live.Length);
+            Check(live.SequenceEqual(originalBytes), "Fixture generation changed the owned original prefix.");
         }
 
         internal void CheckInvalidGenerators()
@@ -845,10 +1180,21 @@ internal static unsafe partial class Program
             // No calls are made after this point. The never-installed root releases
             // its callback roots before the exclusively owned allocation is freed.
             owner?.Dispose(); owner = null; invoke = null; clobber = null;
-            if (memory != IntPtr.Zero)
+            try
             {
-                IntPtr owned = memory; memory = IntPtr.Zero;
-                if (!VirtualFree(owned, UIntPtr.Zero, 0x8000)) throw new Win32Exception(Marshal.GetLastWin32Error(), "Owned fixture release failed.");
+                if (memory != IntPtr.Zero)
+                {
+                    IntPtr owned = memory; memory = IntPtr.Zero;
+                    if (!VirtualFree(owned, UIntPtr.Zero, 0x8000)) throw new Win32Exception(Marshal.GetLastWin32Error(), "Owned fixture release failed.");
+                }
+            }
+            finally
+            {
+                if (recordMemory != IntPtr.Zero)
+                {
+                    IntPtr owned = recordMemory; recordMemory = IntPtr.Zero;
+                    if (!VirtualFree(owned, UIntPtr.Zero, 0x8000)) throw new Win32Exception(Marshal.GetLastWin32Error(), "Owned record page release failed.");
+                }
             }
         }
     }
