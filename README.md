@@ -39,11 +39,27 @@ results, then retains logs and JSON only.
 The fixture reports its actual CLR, pointer width and loaded storage-provider
 identity; binary runs verify both the copied file and the loaded assembly checksum.
 
+## Scope and guarded-frame checks
+
+`GuardedFrameChecks.csproj` runs 38 groups using five exact public dependency DLLs.
+The eight machine groups execute generated code and actual RedBird contexts on
+owned pages, covering legacy replay, register/flag/SIMD restoration, abort routing,
+nested owned calls and the default result when a guarded callback throws before
+dispatch. The source retains a 15-byte instruction test prefix; no game image,
+dump or executable is an input. CLR-owned callback thunks remain pinned until the
+fixture releases them. CI supplies the finite process deadline.
+
+Run this suite through `tools/Invoke-QualificationChecks.ps1 -Suite GuardedFrame`
+with `Mode=Binary` and the verified `PublicExtenderDir`. Input and loaded-provider
+identities, exact case names and actual runtime information are retained. These
+fixtures do not establish the native game's entry/epilogue, AVX-upper, unwind,
+live entity, material-payment, lifecycle or installation contracts.
+
 ## Verification limits
 
-The complete SDK and its `GameUnitManagerAPI` adapter are not compiled by this
-fixture. Native reader binding, the machine-code frame, live purchase, material
-settlement, save/load integration and installation require separate verification.
+The complete SDK and its `GameUnitManagerAPI` adapter are not compiled by these
+fixtures. Native reader binding, the actual game's machine frame, live purchase,
+material settlement, save/load integration and installation require separate verification.
 No game is launched. This selected source package is a development contribution,
 and its checks do not establish gameplay acceptance or performance.
 

@@ -42,6 +42,32 @@
       "sha256LF": "69449af2e47fb6dd0797e02671cae957b95980b67fb9a3ee564e025c1d59c1fa",
       "originalFrozenSha256CRLF": "bb7e6296d3a1f1973dfe36f9a75df52e25d807b750727e54867f9f7034ed0780",
       "qualificationDelta": "Root adds argument-based loaded-provider SHA/MVID and actual CLR/pointer-width reporting before unchanged14groups; no production source or group body changes."
+    },
+    {
+      "path": "GuardedFrameChecks.csproj",
+      "bytes": 2191,
+      "sha256CRLF": "1f9124aabbac20cb566033233c7369447c1b5285d24983cda568694a4e2b7ce9",
+      "sha256LF": "289ac3c775479551142c4435c3b79bd82b4021805ac087c5bac1ed8d10a48390"
+    },
+    {
+      "path": "candidate/EuropeanRecruitmentAdmissionStub.cs",
+      "bytes": 9544,
+      "sha256CRLF": "9831475e5229257eac6425070beab03bb942554ec264c0f575520ff46e1343b8",
+      "sha256LF": "1434d83600d27e92983dcd4c03ac2b6896c8ca7a6fd5d68859f8cd0f92f496f2"
+    },
+    {
+      "path": "fixture/FinalAdmissionCases.cs",
+      "bytes": 17220,
+      "sha256CRLF": "4080d01a0b816d8d21bacc1f3cbcaf3f48b6ad1089a00f37d925aad240b2d77f",
+      "sha256LF": "347f18aa9ce2ff1dc59c19adb2617332bcdd1b8e09dbe519bf010835d15b98f7"
+    },
+    {
+      "path": "reentrancy-source-1/fixture/Program.cs",
+      "bytes": 56554,
+      "sha256CRLF": "f3893c1c8eac08447a39271151eb6899b0dafe302b75e64f50da80d4d13648eb",
+      "sha256LF": "da98271ad0b1fc0cbe197c6505ce1178a314f80cf79456c485dfc8e11f712dbe",
+      "originalFrozenSha256CRLF": "fab29ae00d70de5d6dd71b7e9d7410c4b23a8807c769ae3c07ea70ea80e1a644",
+      "qualificationDelta": "Root adds loaded-five-provider SHA/MVID and actual CLR/pointer identity before unchanged38groups; no group bodies or native fixture changed."
     }
   ],
   "publicCoreArchive": {
@@ -97,5 +123,78 @@
     "ActualOwnedEntryRetainsBothChecksAndIntent",
     "ActualOwnedEntryPreflightBeforeScratch",
     "ActualOwnedEntryDemandInvalidationBeforeCallable"
-  ]
+  ],
+  "publicFrameReferences": [
+    {
+      "name": "Iced.dll",
+      "entry": "BepInEx/plugins/000shcdese/Iced.dll",
+      "bytes": 1894912,
+      "sha256": "cc915d1c2e7be60933c5b129842ca3d08d1fe3cda6c6d6ade8824dcdde16191f"
+    },
+    {
+      "name": "RedBird.Abstractions.dll",
+      "entry": "BepInEx/plugins/000shcdese/RedBird.Abstractions.dll",
+      "bytes": 28160,
+      "sha256": "339cece116f66f59ecc7da5e9a5c0b2dfe24f4e7a5e7efc005864fa77c027a1e"
+    },
+    {
+      "name": "RedBird.Core.dll",
+      "entry": "BepInEx/plugins/000shcdese/RedBird.Core.dll",
+      "bytes": 119296,
+      "sha256": "ee4b036c486077f7d8898ae054f124edde73e6ae1a059e8991c361e2b720d29f"
+    },
+    {
+      "name": "RedBird.X64.dll",
+      "entry": "BepInEx/plugins/000shcdese/RedBird.X64.dll",
+      "bytes": 173568,
+      "sha256": "e085b83b2b87b5d2142c980090d8d9ec616a90a443bd125c17b41e0bb47a44eb"
+    },
+    {
+      "name": "Microsoft.Extensions.Logging.Abstractions.dll",
+      "entry": "BepInEx/plugins/000shcdese/Microsoft.Extensions.Logging.Abstractions.dll",
+      "bytes": 69968,
+      "sha256": "2ffe4217a536b447ba35ca5b6ad79b3a43dd3041dab07b266615780786a33c17"
+    }
+  ],
+  "expectedGuardedGroupNames": [
+    "Scope.InvalidBoundaryNeverPublishesDemandOrCallsOriginal",
+    "Scope.NativeArgumentsAndFinalCandidateFollowOwnedOrder",
+    "Scope.RawZeroWithoutSelectionIsNotARejectionCertificate",
+    "Scope.CoherentAllowRequiresTheSelectedNativeReturn",
+    "Scope.FalseAndPredicateExceptionCanCertifyOnlyCoherentAbort",
+    "Scope.RejectionNeedsNormalZeroNativeReturn",
+    "Scope.DuplicateAndRecursiveSitesCannotCertify",
+    "Scope.CandidateMismatchAndPostAdmissionMutationAreUnknown",
+    "Scope.ContextChangesCannotCertifyRejection",
+    "Scope.LegacyReadAndFrameFaultsRemainUnknown",
+    "Scope.NestedOwnedCallCannotReplaceOuterAttempt",
+    "Scope.RealForeignThreadCannotBorrowOwnedAttempt",
+    "Scope.DemandPublicationAndRetirementFaultsClearTls",
+    "Scope.TerminalResultsRemainImmutableAfterLaterCalls",
+    "Final.KnownUnavailableReaderRefusesBeforeEntry",
+    "Final.DefaultAndMissingProofNeverReachAdmission",
+    "Final.ValidProofFollowsLegacyAndPrecedesAdmission",
+    "Final.CoherentFalseOrThrowRetainsOnlyNarrowAbortEvidence",
+    "Final.LegacyGoldSpendRefusesBeforeAdmission",
+    "Final.DuplicateGoodsNeedAggregatedCurrentStock",
+    "Final.HorseClaimAndStalePrefixCacheRefuse",
+    "Final.CurrentTableAndActualTailOperandsMustBothMatch",
+    "Final.RestoredBillHistoryDoesNotInventAnEpoch",
+    "Final.WorldOwnerMonitorSaveAndLifecycleDriftRefuse",
+    "Final.ThrowingReaderNeverReachesAdmission",
+    "Final.StableIdsDoNotHideDeadOrIneligibleSelectedUnits",
+    "Final.TaintedCandidateOrProofCannotReachAdmission",
+    "Final.PostAdmissionDriftNeverBecomesRefundEvidence",
+    "Final.SelectedSiteAndRawReturnCannotBeReplayed",
+    "Final.NoOwnedScopeDoesNotCallNewLeaves",
+    "Stub.DormantMatchesIndependentRealRedBirdBaseline",
+    "Stub.DemandWithoutOwnedScopeUsesLegacyOnce",
+    "Stub.OwnedAllowRestoresStateThenReplays",
+    "Stub.OwnedRefusalRestoresStateBeforeAbort",
+    "Stub.OwnedPredicateExceptionRestoresStateBeforeAbort",
+    "Stub.InvalidPrefixAndBoundsEmitNothing",
+    "Stub.OwnedRecursiveGeneratedFrameAbortsWithoutInnerTail",
+    "Stub.GuardSuppressedPreDispatchFaultDefaultsToAbort"
+  ],
+  "expectedGuardedGroups": 38
 }
