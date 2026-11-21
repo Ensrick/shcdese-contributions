@@ -71,7 +71,8 @@ try {
         @($runtimeRecords) | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $results 'runtime-provider.json') -Encoding utf8
         $runtimeIdentity = $inputs.publicCore.sha256
     }
-    $runtimeArguments = if ($isFrame) { @(Join-Path $repo 'INPUTS.json') } else { @($Mode,$runtimeIdentity) }
+    # Keep a single path as an array: scalar string splatting passes its characters.
+    [string[]]$runtimeArguments = if ($isFrame) { @(Join-Path $repo 'INPUTS.json') } else { @($Mode,$runtimeIdentity) }
     if ($TargetFramework -eq 'net481') {
         & (Join-Path $output ($assembly + '.exe')) @runtimeArguments 2>&1 | Tee-Object -FilePath (Join-Path $results 'execution.log')
     } else {
