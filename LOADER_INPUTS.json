@@ -1,0 +1,135 @@
+{
+  "schema": "loader-lifecycle-source-qualification/1",
+  "sourceTag": "v2.14.4",
+  "sourceCommit": "7c3a252794974ee7af5cca02f446ba994fb9d22d",
+  "sourceFiles": [
+    {
+      "path": ".github/workflows/loader-lifecycle.yml",
+      "bytesCRLF": 1795,
+      "sha256CRLF": "59d0a5bfd33a42269814eddbd6688d9ee6240b351c2c744b6aa7c2cdebda48ba",
+      "sha256LF": "59d0a5bfd33a42269814eddbd6688d9ee6240b351c2c744b6aa7c2cdebda48ba"
+    },
+    {
+      "path": "NuGet.Loader.Config",
+      "bytesCRLF": 115,
+      "sha256CRLF": "15ba1d1915b1944909ebb32a70c2c3a004e33686dedb07252f2fe52168ec5109",
+      "sha256LF": "2142cfb2dfa2c7feefbe40fabcc68b0dfecadafa99a1db9b70239d977cf2a7ef"
+    },
+    {
+      "path": "README.md",
+      "bytesCRLF": 2452,
+      "sha256CRLF": "a468533351849988b6fa327cf38c3f3ae725c333ccc75a4235254f4b30df4420",
+      "sha256LF": "864b533f2ac00bbcb3bb1393bdc522d77f32915f639dffe5a6034a7050a977a7"
+    },
+    {
+      "path": "src/SHCDESE.BepInEx/Detours/BulkMapLoaderDetours.cs",
+      "bytesCRLF": 22552,
+      "sha256CRLF": "4188cbf1c8e2d689baf0004751003afdc03ab70dfde34d3f3aa81509f00ad2e1",
+      "sha256LF": "6871921adecde892d1c1fcfe886b63943cd0768bbd60c0b19fe33a495f6bf9e3"
+    },
+    {
+      "path": "src/SHCDESE.BepInEx/EventAPI/EventHookBase.cs",
+      "bytesCRLF": 291,
+      "sha256CRLF": "34912047a2111ba597374896fa4d5cfd525f0984524da0760053a78ef8fdd416",
+      "sha256LF": "50c182528c65cdfafb2ceb169a0a81acd4353606b1490babf19a52d7bc976dab"
+    },
+    {
+      "path": "src/SHCDESE.BepInEx/EventAPI/EventHookPhase.cs",
+      "bytesCRLF": 461,
+      "sha256CRLF": "cc876a44012ea200b3e6b3e8383ba65ba062f06b79e82353c7ca161d06b2510b",
+      "sha256LF": "88189bbeec47d439f2da2e200b0a92ec56776ce17f9cf4bd7e9e9cc5be064733"
+    },
+    {
+      "path": "src/SHCDESE.BepInEx/EventAPI/MapLoader/LoadSaveGameEventArgs.cs",
+      "bytesCRLF": 604,
+      "sha256CRLF": "59db64a434a331cdd787508d2001bc99006fce889990948f000fd7457790bb5e",
+      "sha256LF": "25f1703d7245318836ba203b8ea6a56670007f0c1c3cee1d1b05f153b46d3909"
+    },
+    {
+      "path": "src/SHCDESE.BepInEx/EventAPI/MapLoader/MapLoadEventArgs.cs",
+      "bytesCRLF": 1075,
+      "sha256CRLF": "7354cfd242e204af4549d05a4a3afc80a72ea0a9489c5a9e0e0b8a7de58674d4",
+      "sha256LF": "78b8cd993a2446d783cc4ab1c96f06843967596e6e5a2f5ca8235e51311d7838"
+    },
+    {
+      "path": "src/SHCDESE.BepInEx/EventAPI/MapLoader/MapStartEventArgs.cs",
+      "bytesCRLF": 719,
+      "sha256CRLF": "71d377967eef796c5fc6d35e62a8f063e057f25697139a238b53e94c5f54449a",
+      "sha256LF": "bc2849fb1a63d82d93f6ce2aff1f024b01da2c2fbbb17ad1381dfee18fcd7ec5"
+    },
+    {
+      "path": "src/SHCDESE.BepInEx/EventAPI/MapLoader/MapUnloadEventArgs.cs",
+      "bytesCRLF": 424,
+      "sha256CRLF": "b9586f33033d1049e2f649f576d141d67e911d57fed284fa2e12a88ca5b39efa",
+      "sha256LF": "3a0151e988887167ca3cbc51b3d53c3831b9ef25b8dbd3fc137ea90b5c5c9451"
+    },
+    {
+      "path": "tests/LoaderLifecycleChecks/EXPECTED_GROUPS.json",
+      "bytesCRLF": 3475,
+      "sha256CRLF": "8c576efcdf1b896349b542c587e087151dfacee48c8a9147917d99ce45eeec4a",
+      "sha256LF": "b3fed0938a30e4f98c8b64eeca1d227a979f0fb63753ef16da2591c44a6ddb1f"
+    },
+    {
+      "path": "tests/LoaderLifecycleChecks/FixtureSdkDoubles.cs",
+      "bytesCRLF": 5161,
+      "sha256CRLF": "edc5d10de2431e8ddbd2fc3121c4e0f78593c761236be095f6c6a21d0999034f",
+      "sha256LF": "794131dbd06d1eaf24a8e0fdd8facd9ae86504bb6f9d7e42fac734a8674660e9"
+    },
+    {
+      "path": "tests/LoaderLifecycleChecks/LoaderLifecycleChecks.csproj",
+      "bytesCRLF": 3350,
+      "sha256CRLF": "195887e9ad3c5022577fb8015004f892576ab6d626f3953fa11852b9aadc0db4",
+      "sha256LF": "833634930ce0e3d1359e78c2812484a3125a9323edc99f978399793dc5668560"
+    },
+    {
+      "path": "tests/LoaderLifecycleChecks/NuGet.Config",
+      "bytesCRLF": 121,
+      "sha256CRLF": "e2f87ecb7f3c504c0628796d48d2260063147ab6dd61d6df5fc97b44345a2c5a",
+      "sha256LF": "964302159308872b9729e1828a1ba897f30634f7bd751cde11ea8e6fed8cfb97"
+    },
+    {
+      "path": "tests/LoaderLifecycleChecks/Program.cs",
+      "bytesCRLF": 22028,
+      "sha256CRLF": "930687578edcf7b9e8718e1be093181852b04b37ad0ef80c792e34f11bb2e404",
+      "sha256LF": "0ce2ddf96346bc63695b438cdd1d17dfc0cb80b5fc4cb1771bbac9fe1f58b37f"
+    },
+    {
+      "path": "tests/LoaderLifecycleChecks/README.md",
+      "bytesCRLF": 3537,
+      "sha256CRLF": "1a257fc9fe49b439cf2557371b55420a0ef60285e520e9704d15619a94edd469",
+      "sha256LF": "c2891e67ae2918189537961d53e0278e5aa19170cc402fd425516b4de298fbe7"
+    },
+    {
+      "path": "tools/Invoke-LoaderChecks.ps1",
+      "bytesCRLF": 11733,
+      "sha256CRLF": "a725b5fe249f1458ecd94c178029defe8cf91d136e38ef5c8ac74d6dd340a0b2",
+      "sha256LF": "68543809e0152ebcedada80e5d680d45bacf7599e7d96d23917f9fa8f3e1bd84"
+    },
+    {
+      "path": "tools/Prepare-LoaderReference.ps1",
+      "bytesCRLF": 6813,
+      "sha256CRLF": "1dc2b9c39842077dffc578b1a1874e8210cccc06967a35ea96e1af5e3d6e376a",
+      "sha256LF": "c19fae2e0bb6347d24a42b328cbf2a5ae5209208861a4f9f6efa1e188cccbe93"
+    }
+  ],
+  "originalSource": {
+    "url": "https://gitlab.com/api/v4/projects/74440776/repository/files/src%2FSHCDESE.BepInEx%2FDetours%2FBulkMapLoaderDetours.cs?ref=7c3a252794974ee7af5cca02f446ba994fb9d22d",
+    "commit": "7c3a252794974ee7af5cca02f446ba994fb9d22d",
+    "blob": "cc15e828eacf9cf062e0b84687755f5889d507fb",
+    "bytes": 19460,
+    "sha256": "c8b212f9c7f75c076e4733aa10b43b4979dc319a9fd125b22324cc6e56a5b27d"
+  },
+  "systemMemory": {
+    "url": "https://api.nuget.org/v3-flatcontainer/system.memory/4.6.3/system.memory.4.6.3.nupkg",
+    "bytes": 192935,
+    "sha256": "26078aeb758c9ae985e8bf851f973026061da6a5eb4837204d0c2d2204c72955",
+    "entry": "lib/net462/System.Memory.dll",
+    "entryBytes": 145200,
+    "entrySha256": "d5e8e4866f9cfa66f7765660f84b210198893e55335487afe5ebda342c0e913d"
+  },
+  "limits": [
+    "Whole actual wrapper/payload source; SDK control-flow doubles, no full SDK compilation.",
+    "Original negative control must match exact15 defects; setup failures give no credit.",
+    "No native game, actual hook installation, R3 policy, world/reset or ABI qualification."
+  ]
+}

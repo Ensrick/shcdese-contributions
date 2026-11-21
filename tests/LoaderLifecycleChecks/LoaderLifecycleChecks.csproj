@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>LoaderLifecycleChecks</AssemblyName>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <RunAnalyzers>false</RunAnalyzers>
+    <NuGetAudit>false</NuGetAudit>
+    <Nullable>annotations</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <LangVersion>latest</LangVersion>
+    <PayloadSourceRoot Condition="'$(PayloadSourceRoot)' == ''">$(MSBuildThisFileDirectory)../../src/SHCDESE.BepInEx</PayloadSourceRoot>
+    <LoaderSourcePath Condition="'$(LoaderSourcePath)' == ''">$(PayloadSourceRoot)/Detours/BulkMapLoaderDetours.cs</LoaderSourcePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="FixtureSdkDoubles.cs" />
+    <Compile Include="$(LoaderSourcePath)" Link="ActualProduction/BulkMapLoaderDetours.cs" />
+    <Compile Include="$(PayloadSourceRoot)/EventAPI/EventHookBase.cs" Link="ActualProduction/EventHookBase.cs" />
+    <Compile Include="$(PayloadSourceRoot)/EventAPI/EventHookPhase.cs" Link="ActualProduction/EventHookPhase.cs" />
+    <Compile Include="$(PayloadSourceRoot)/EventAPI/MapLoader/LoadSaveGameEventArgs.cs" Link="ActualProduction/LoadSaveGameEventArgs.cs" />
+    <Compile Include="$(PayloadSourceRoot)/EventAPI/MapLoader/MapLoadEventArgs.cs" Link="ActualProduction/MapLoadEventArgs.cs" />
+    <Compile Include="$(PayloadSourceRoot)/EventAPI/MapLoader/MapStartEventArgs.cs" Link="ActualProduction/MapStartEventArgs.cs" />
+    <Compile Include="$(PayloadSourceRoot)/EventAPI/MapLoader/MapUnloadEventArgs.cs" Link="ActualProduction/MapUnloadEventArgs.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net481'">
+    <Reference Include="System.Memory"><HintPath>$(SystemMemoryPath)</HintPath><Private>true</Private></Reference>
+  </ItemGroup>
+  <Target Name="RequireActualProductionInputs" BeforeTargets="PrepareForBuild">
+    <Error Condition="!Exists('$(LoaderSourcePath)')" Text="Supply the exact complete production BulkMapLoaderDetours source; no copied wrapper substitute." />
+    <Error Condition="'$(TargetFramework)' == 'net481' and !Exists('$(SystemMemoryPath)')" Text="net481 needs the admitted actual System.Memory DLL for the production constructor signature; no Span type double is provided." />
+    <GetFileHash Files="$(SystemMemoryPath)" Algorithm="SHA256" Condition="'$(TargetFramework)' == 'net481'">
+      <Output TaskParameter="Items" ItemName="_SystemMemoryHash" />
+    </GetFileHash>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net481'"><_ActualSystemMemorySha>@(_SystemMemoryHash-&gt;'%(FileHash)')</_ActualSystemMemorySha></PropertyGroup>
+    <Error Condition="'$(TargetFramework)' == 'net481' and '$(_ActualSystemMemorySha)' != 'D5E8E4866F9CFA66F7765660F84B210198893E55335487AFE5EBDA342C0E913D'" Text="System.Memory differs from the admitted 4.6.3 net462 provider." />
+  </Target>
+</Project>

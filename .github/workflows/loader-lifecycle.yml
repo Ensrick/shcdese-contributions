@@ -1,0 +1,48 @@
+name: Loader lifecycle control flow
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  loader:
+    name: Loader (${{ matrix.variant }}, ${{ matrix.target }})
+    runs-on: windows-latest
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [Original, Candidate]
+        target: [net10.0, net481]
+    env:
+      DOTNET_ADD_GLOBAL_TOOLS_TO_PATH: 'false'
+      DOTNET_GENERATE_ASPNET_CERTIFICATE: 'false'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+      MSBUILDDISABLENODEREUSE: '1'
+      LOADER_VARIANT: ${{ matrix.variant }}
+      LOADER_TARGET: ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - name: Prepare exact Span declaration provider
+        if: matrix.target == 'net481'
+        shell: pwsh
+        run: ./tools/Prepare-LoaderReference.ps1 -OutputDirectory "$env:RUNNER_TEMP/loader-reference"
+      - name: Compile actual source and verify exact original or candidate outcome
+        shell: pwsh
+        run: ./tools/Invoke-LoaderChecks.ps1 -Variant $env:LOADER_VARIANT -TargetFramework $env:LOADER_TARGET -ResultDirectory "$env:RUNNER_TEMP/loader-results" -SystemMemoryPath "$env:RUNNER_TEMP/loader-reference/System.Memory.dll"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: loader-${{ matrix.variant }}-${{ matrix.target }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/loader-results/*.json
+            ${{ runner.temp }}/loader-results/*.log
+            ${{ runner.temp }}/loader-reference/loader-reference.json
+          if-no-files-found: warn
+          retention-days: 7
