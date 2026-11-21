@@ -1,0 +1,101 @@
+{
+  "schema": "selected-se-cost-owner-qualification-inputs/1",
+  "scope": "Selected internally owned production source and controlled fixtures, without full SDK history, proprietary game inputs or private workspace evidence.",
+  "upstreamScriptExtender": "https://gitlab.com/rawra-stronghold-crusader/shcde-script-extender",
+  "upstreamSourceTag": "v2.14.4",
+  "sourceReview": "Independent source/data review complete; compilation and runtime results pending.",
+  "productionFiles": [
+    {
+      "path": "CostOwnerChecks.csproj",
+      "bytes": 2779,
+      "sha256CRLF": "ffc06df0c32e0989069f9c22a746260e29746e479caa0d5c530eb718751c6394",
+      "sha256LF": "d02bd28290d4244bcd7d211d777a97a8177d7acaa14c13d3ea9f2bb3208648de"
+    },
+    {
+      "path": "NuGet.Remote.Config",
+      "bytes": 131,
+      "sha256CRLF": "652624e1ac15698be31dc7bc90a74b1fcc4314c387551013c61fb3a113843d28",
+      "sha256LF": "5256a7e3e07d2c5c94f7a1e6c45f39aab011c659c5e2d53e452dea525ce04575"
+    },
+    {
+      "path": "candidate/NativeRecruitmentCostOwner.cs",
+      "bytes": 15413,
+      "sha256CRLF": "f6fa56a1411cd35cfe809a7d5089e77a333f0fd9ec94f96664e263e5a7f6b9d2",
+      "sha256LF": "cf627ee9a1ea0a98982081ef3df271b5c60c2885a351c5a12ab9906f7e5b0d7c"
+    },
+    {
+      "path": "candidate/EuropeanRecruitmentAdmission.cs",
+      "bytes": 24989,
+      "sha256CRLF": "6485622f4353ea79e9d80cc11c7d0757e1070beb15067d2c7ebdb92f546877de",
+      "sha256LF": "58798c742023b239a98af5bc1d50fa69568c3b5a9fdc668383c659b2898d51ba"
+    },
+    {
+      "path": "candidate/EuropeanRecruitmentFinalAdmission.cs",
+      "bytes": 10210,
+      "sha256CRLF": "3ad9e6bf20a9adc4dde97e2020aa51a7e7b8c7115e658063d6744f7afcd69fba",
+      "sha256LF": "7b23a15ae9e9cdbcd356b972d4face3c42b570c84be5d2f958e9dfad683743ca"
+    },
+    {
+      "path": "fixture/CostOwnerCases.cs",
+      "bytes": 23597,
+      "sha256CRLF": "72c8467a4a620a252f7d41b78649e1d0a42ebd04fb2bc8b59b0512f9b81dd1c7",
+      "sha256LF": "69449af2e47fb6dd0797e02671cae957b95980b67fb9a3ee564e025c1d59c1fa",
+      "originalFrozenSha256CRLF": "bb7e6296d3a1f1973dfe36f9a75df52e25d807b750727e54867f9f7034ed0780",
+      "qualificationDelta": "Root adds argument-based loaded-provider SHA/MVID and actual CLR/pointer-width reporting before unchanged14groups; no production source or group body changes."
+    }
+  ],
+  "publicCoreArchive": {
+    "url": "https://gitlab.com/api/v4/projects/74440776/packages/generic/shcdese/2.14.4/SHCDESE.zip",
+    "bytes": 60330646,
+    "sha256": "c993c40ea3a74c6fc03d120d0161e8c654cb11ed72509dda2c0e3ca0fc4b80e9"
+  },
+  "publicCore": {
+    "name": "RedBird.Core.dll",
+    "entry": "BepInEx/plugins/000shcdese/RedBird.Core.dll",
+    "bytes": 119296,
+    "sha256": "ee4b036c486077f7d8898ae054f124edde73e6ae1a059e8991c361e2b720d29f"
+  },
+  "publicSource": {
+    "repository": "Ensrick/redbird-contributions",
+    "commit": "3a9377e1774ac93b9824295604d0a0d9ad9a376f",
+    "files": [
+      {
+        "path": "src/RedBird.Core/Memory/Managed/ManagedNativeArray.cs",
+        "sha256CRLF": "040f8014c3ba377ee4f8ec52edd44429d63749ffc1ad5b84a570490503cd3985",
+        "sha256LF": "e5185ad922bb564c740e4998a0087ef636ebc4044cc1102a6dce92f7458bb73b"
+      },
+      {
+        "path": "src/RedBird.Core/Memory/Managed/ManagedDictionary.cs",
+        "sha256CRLF": "523151fc0a0f774c98aa689d0b2fc7208804d9aec38cd3bdfa844445d9ecfb57",
+        "sha256LF": "124a49d47a655288f177253074faf7d819805bfc9f804845c51abf9e19fa5d22"
+      },
+      {
+        "path": "src/RedBird.Core/Memory/NativePointer.cs",
+        "sha256CRLF": "73d172b81bacac2bdeb5173fb2f4fe2ed6af306457878081fae5af81135096fa",
+        "sha256LF": "508e993d194bfbb799564bad1c610f89bcaa854bf95c6809acb567a88e6ddedf"
+      }
+    ]
+  },
+  "expectedCostOwnerGroups": 14,
+  "limits": [
+    "Does not compile GameUnitManagerAPI or the complete SDK.",
+    "Does not run a native purchase, live reader, material settlement or installed game.",
+    "Controlled storage faults are fixture injections."
+  ],
+  "expectedGroupNames": [
+    "DefaultViewsAndOrdinarySetterDomain",
+    "PhysicalReadAndNoSetterRestoration",
+    "SameValueIntentAndActualCoreFirstTouchReset",
+    "ChangedIntentAndOldCloseCannotResurrect",
+    "ActualOverlayClearInvalidatesAndUnmasks",
+    "NestedAndContendingBeginRefuseBeforeWrite",
+    "ForeignSetterCompletesDuringCallerInterval",
+    "PartialBeginRestoresIndependentComponents",
+    "GoldDictionaryThenPhysicalFailureIsUncertain",
+    "ControlledPostWriteFailureAndUnknownIntent",
+    "WrongThreadAndIndependentEndFailures",
+    "ActualOwnedEntryRetainsBothChecksAndIntent",
+    "ActualOwnedEntryPreflightBeforeScratch",
+    "ActualOwnedEntryDemandInvalidationBeforeCallable"
+  ]
+}

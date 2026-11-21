@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <RunAnalyzers>false</RunAnalyzers>
+    <NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="candidate/NativeRecruitmentCostOwner.cs" />
+    <Compile Include="candidate/EuropeanRecruitmentAdmission.cs" />
+    <Compile Include="candidate/EuropeanRecruitmentFinalAdmission.cs" />
+    <Compile Include="fixture/CostOwnerCases.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(CoreReferenceMode)' == 'Source'">
+    <Compile Include="$(RedBirdSourceRoot)/src/RedBird.Core/Memory/Managed/ManagedNativeArray.cs" Link="ActualCore/ManagedNativeArray.cs" />
+    <Compile Include="$(RedBirdSourceRoot)/src/RedBird.Core/Memory/Managed/ManagedDictionary.cs" Link="ActualCore/ManagedDictionary.cs" />
+    <Compile Include="$(RedBirdSourceRoot)/src/RedBird.Core/Memory/NativePointer.cs" Link="ActualCore/NativePointer.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(CoreReferenceMode)' == 'Binary'">
+    <Reference Include="RedBird.Core">
+      <HintPath>$(RedBirdCorePath)</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+  <Target Name="ValidateCoreSelection" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(CoreReferenceMode)' != 'Source' and '$(CoreReferenceMode)' != 'Binary'" Text="Select exactly Source or Binary CoreReferenceMode." />
+    <Error Condition="'$(CoreReferenceMode)' == 'Source' and !Exists('$(RedBirdSourceRoot)/src/RedBird.Core/Memory/NativePointer.cs')" Text="Supply the admitted public RedBird source root." />
+    <Error Condition="'$(CoreReferenceMode)' == 'Binary' and !Exists('$(RedBirdCorePath)')" Text="Supply the exact official public Core DLL." />
+    <GetFileHash Files="$(RedBirdCorePath)" Algorithm="SHA256" Condition="'$(CoreReferenceMode)' == 'Binary'">
+      <Output TaskParameter="Items" ItemName="_CoreHash" />
+    </GetFileHash>
+    <PropertyGroup Condition="'$(CoreReferenceMode)' == 'Binary'">
+      <_ActualCoreSha>@(_CoreHash-&gt;'%(FileHash)')</_ActualCoreSha>
+    </PropertyGroup>
+    <Error Condition="'$(CoreReferenceMode)' == 'Binary' and '$(_ActualCoreSha)' != 'EE4B036C486077F7D8898AE054F124EDDE73E6AE1A059E8991C361E2B720D29F'" Text="Core DLL differs from the hash-pinned official public dependency." />
+  </Target>
+</Project>
