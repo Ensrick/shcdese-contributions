@@ -39,6 +39,42 @@ results, then retains logs and JSON only.
 The fixture reports its actual CLR, pointer width and loaded storage-provider
 identity; binary runs verify both the copied file and the loaded assembly checksum.
 
+## Full SDK cost-owner adapter port
+
+The portable [adapter patch](ports/GameUnitManagerAPI.cost-owner.patch) connects
+the existing cost owner to the real `GameUnitManagerAPI`. Its exact base, target,
+kernel and LF/CRLF result hashes are recorded in `INPUTS.json.costOwnerSdkPort`.
+It targets fork revision `f8d51730fcb54b25af43d3c9348d57db058e077f`, not a rebased
+v2.14.4 tree. Do not apply it to an arbitrary release or rebase it by inference.
+
+Before changing a full SDK checkout, require that exact base and the recorded
+complete-file hash (normalizing only CRLF to LF, preserving the UTF-8 BOM).
+Preserve unrelated work. Run `git apply --check` on the patch, then apply it and
+verify the recorded result hash. Copy the existing
+[`candidate/NativeRecruitmentCostOwner.cs`](candidate/NativeRecruitmentCostOwner.cs)
+to the recorded kernel target; refuse a differing existing destination. The
+kernel is reused byte-for-byte rather than embedded again in the patch. Retain
+the repository license files and build the real full SDK project with its real
+dependencies. Use global `SkipPostBuild=true` for a compile-only check and route
+output, intermediates and temporary/cache data to owned locations.
+
+This port briefly serializes supported gold/goods setters and scratch restore
+intent. Public signatures and getter behavior remain unchanged; existing
+cross-thread write interleavings now serialize. The short cost gate contains no
+logging, callbacks, native entry or engine-monitor acquisition. It does not make
+getters generally thread-safe or govern arbitrary pointer/native writes.
+
+A separate private full-project compilation has built this exact two-file port
+on the pinned fork against real SDK dependencies. That is distinct from these
+isolated fixtures and from tagged v2.14.4 source qualification. No installation
+or runtime/R3-callback behavior is established by a compile. Internal `Begin`
+still has no qualified native caller: current-world/frame/entry ownership,
+material settlement and complete-operation/reset/save integration remain
+unavailable. No new recruitment admission feature or public provider is enabled. The separate
+guarded-frame prototypes and proposed RedBird factory are not installed or
+activated by this cost-only patch. Installed-consumer ABI and later runtime
+qualification remain separate gates.
+
 ## Scope and guarded-frame checks
 
 `GuardedFrameChecks.csproj` runs 44 groups using five exact public dependency DLLs.
