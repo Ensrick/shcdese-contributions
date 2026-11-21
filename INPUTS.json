@@ -57,9 +57,11 @@
     },
     {
       "path": "fixture/FinalAdmissionCases.cs",
-      "bytes": 17220,
-      "sha256CRLF": "4080d01a0b816d8d21bacc1f3cbcaf3f48b6ad1089a00f37d925aad240b2d77f",
-      "sha256LF": "347f18aa9ce2ff1dc59c19adb2617332bcdd1b8e09dbe519bf010835d15b98f7"
+      "bytes": 17224,
+      "sha256CRLF": "3b52596bf8c8cf800c18750add676db651ec3c702b95d92a35f199b0d5ab865b",
+      "sha256LF": "bf2ec261f7de852d2ae8e5ce1c50d332b21c9184bcb3b10c273ff6f5d979ce1b",
+      "originalFrozenSha256CRLF": "4080d01a0b816d8d21bacc1f3cbcaf3f48b6ad1089a00f37d925aad240b2d77f",
+      "qualificationDelta": "Explicit zero initialization of fixture Good3 prevents CS0649 under warnings-as-errors; default data and all groups unchanged."
     },
     {
       "path": "reentrancy-source-1/fixture/Program.cs",

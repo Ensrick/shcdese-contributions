@@ -21,7 +21,7 @@ internal static unsafe partial class Program
         internal long Generation = 1;
         internal bool KnownReader = true, Reader = true, Published = true, Playable = true, Loading, SaveFrozen;
         internal bool ResourcesQualified = true, HorseQualified = true, SelectedAlive = true, SelectedEligible = true;
-        internal int Unit = 37, Player = 3, NextType = 76, Gold = 200, Good1 = 2, Good2 = 2, Good3, FreeHorses = 1, CachedHorses = 1;
+        internal int Unit = 37, Player = 3, NextType = 76, Gold = 200, Good1 = 2, Good2 = 2, Good3 = 0, FreeHorses = 1, CachedHorses = 1;
         internal uint Global = 4001;
         internal int NativeCalls, LegacyCalls, ProofCalls, AdmissionCalls, DemandOn, DemandOff;
         internal bool MissingReader, ThrowReader, DefaultObservation, DuplicateSite, ReturnZero, ThrowNative;
