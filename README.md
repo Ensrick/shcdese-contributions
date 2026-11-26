@@ -44,8 +44,10 @@ identity; binary runs verify both the copied file and the loaded assembly checks
 The portable [adapter patch](ports/GameUnitManagerAPI.cost-owner.patch) connects
 the existing cost owner to the real `GameUnitManagerAPI`. Its exact base, target,
 kernel and LF/CRLF result hashes are recorded in `INPUTS.json.costOwnerSdkPort`.
-It targets fork revision `f8d51730fcb54b25af43d3c9348d57db058e077f`, not a rebased
-v2.14.4 tree. Do not apply it to an arbitrary release or rebase it by inference.
+It targets the complete official v2.14.4 source at
+`7c3a252794974ee7af5cca02f446ba994fb9d22d`. Its existing five patch hunks are
+unchanged; the official projectile-death predicates and Interop source remain
+intact. Do not apply it to an arbitrary release or rebase it by inference.
 
 Before changing a full SDK checkout, require that exact base and the recorded
 complete-file hash (normalizing only CRLF to LF, preserving the UTF-8 BOM).
@@ -64,10 +66,21 @@ cross-thread write interleavings now serialize. The short cost gate contains no
 logging, callbacks, native entry or engine-monitor acquisition. It does not make
 getters generally thread-safe or govern arbitrary pointer/native writes.
 
-A separate private full-project compilation has built this exact two-file port
-on the pinned fork against real SDK dependencies. That is distinct from these
-isolated fixtures and from tagged v2.14.4 source qualification. No installation
-or runtime/R3-callback behavior is established by a compile. Internal `Begin`
+A separate private full-project compilation of this exact official-source
+two-file port returned compiler exit 0, with 162 warnings and zero errors. The
+original owner run remains RED: its resource-argument checker resolved a relative
+compiler path against the wrong directory. Independent actual source, reference,
+output and embedded-resource review qualified the compilation without a rebuild.
+These private compiler results are separate from the isolated fixtures.
+
+The subsequent offline ABI check passed all 34 installed managed consumers with
+zero broken targets or binding errors and the same 14 existing shared-native-site
+warnings. Baseline and candidate scans each matched all 370 SDK byte patterns;
+all 11 SDK declaration contracts and both installed plugin-graph checks passed.
+This is Cecil and native PE-byte metadata coverage. It does not execute target
+code, verify minimum loader dependency versions or a candidate-overlay graph,
+or establish native behavior, installation, startup, gameplay or performance.
+No version stamp was introduced. Internal `Begin`
 still has no qualified native caller: current-world/frame/entry ownership,
 material settlement and complete-operation/reset/save integration remain
 unavailable. No new recruitment admission feature or public provider is enabled. The separate
