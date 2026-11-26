@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <ManagerSource Condition="'$(ManagerSource)' == ''">src/ManagedHookManager.cs</ManagerSource>
+    <OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion><Nullable>annotations</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo><GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers><RunAnalyzers>false</RunAnalyzers><NuGetAudit>false</NuGetAudit>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors><UseAppHost>false</UseAppHost>
+    <RuntimeFrameworkVersion>10.0.8</RuntimeFrameworkVersion><RollForward>Disable</RollForward>
+    <TargetLatestRuntimePatch>false</TargetLatestRuntimePatch>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src/ManagedDetour.cs" />
+    <Compile Include="src/TranslationHookStartup.cs" />
+    <Compile Include="src/Translator_Hooks.cs" />
+    <Compile Include="src/NoesisGUI_Hooks.cs" />
+    <Compile Include="$(ManagerSource)" />
+    <Compile Include="fixture/ApplyLeaves.cs" />
+    <Compile Include="fixture/TranslationStartupCases.cs" />
+  </ItemGroup>
+</Project>

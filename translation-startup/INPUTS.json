@@ -1,0 +1,111 @@
+{
+  "schema": "translation-startup-portable-controlled-inputs/1",
+  "officialRepository": "https://gitlab.com/rawra-stronghold-crusader/shcde-script-extender",
+  "officialSourceRef": "81a7a945c47c2c5dcc347cd1ad3661a54be02429",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 14,
+      "sha256": "4e9a1c677a8d866cddc990d78a9cc867d33391667ce0aafba90ed5efa535035a"
+    },
+    {
+      "path": "baseline/ManagedHookManager.cs",
+      "bytes": 14945,
+      "sha256": "80c562aa016fa7580cb6b1d874933bab8f7067452792d1726b60c5a5d6165a62"
+    },
+    {
+      "path": "CheckFixture.py",
+      "bytes": 1837,
+      "sha256": "65b53072fafc59eceedfc19d0dea04b166962e4560961fdc1231b851a4879c14"
+    },
+    {
+      "path": "fixture/ApplyLeaves.cs",
+      "bytes": 11955,
+      "sha256": "adea31b5ec221ef60941389a0917c58cfd4a1e4faf6aa1956b6564574254fb43"
+    },
+    {
+      "path": "fixture/TranslationStartupCases.cs",
+      "bytes": 28321,
+      "sha256": "c4cdf33a0b1a082c915647aae5bf3f9b9ea2a43e9052d289e1213f66e1cb6f50"
+    },
+    {
+      "path": "global.json",
+      "bytes": 112,
+      "sha256": "ff4f3596a75ff63c7bc24ce0e33cc4fbd0bfe67116f5b3dceed30600255775e4"
+    },
+    {
+      "path": "NuGet.Config",
+      "bytes": 115,
+      "sha256": "15ba1d1915b1944909ebb32a70c2c3a004e33686dedb07252f2fe52168ec5109"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3615,
+      "sha256": "2ee8abb79c95196fff09939918e2002deb436d0c72f8fdfef4351a20fdd6892f"
+    },
+    {
+      "path": "src/ManagedDetour.cs",
+      "bytes": 982,
+      "sha256": "53f22358b54283ee3a39766b40ca8865a5ce059927b2274e854180f12f78fb7a"
+    },
+    {
+      "path": "src/ManagedHookManager.cs",
+      "bytes": 14401,
+      "sha256": "4f4e30c1524180bd8fb0010b007257d31f1c22943f5bb47e5c0672565b4b4c1e"
+    },
+    {
+      "path": "src/NoesisGUI_Hooks.cs",
+      "bytes": 1662,
+      "sha256": "2b6c508d1c141c6043e795a75779b2eae81c341221f835b2509deadd8cdea2ff"
+    },
+    {
+      "path": "src/TranslationHookStartup.cs",
+      "bytes": 8459,
+      "sha256": "f432325066020ca8810aa4c90af851f35ca611bc915c87778862c5384e15a232"
+    },
+    {
+      "path": "src/Translator_Hooks.cs",
+      "bytes": 2687,
+      "sha256": "98cad9d360157c5d5624a67ad98ae5d2e27bbd253395b3f24696aef652fecb56"
+    },
+    {
+      "path": "TRANSLATION_STARTUP.md",
+      "bytes": 7492,
+      "sha256": "1f83c511eeca568ab6a572bbfc7ecac1b93cce8caf7219b0ecb7b54a3b96388e"
+    },
+    {
+      "path": "TranslationStartupChecks.csproj",
+      "bytes": 1285,
+      "sha256": "727f98535db0c40e9a7ca8f262b2c352a861f78380de90181917c1d424138a54"
+    }
+  ],
+  "productionSourcePaths": [
+    "src/ManagedDetour.cs",
+    "src/ManagedHookManager.cs",
+    "src/NoesisGUI_Hooks.cs",
+    "src/TranslationHookStartup.cs",
+    "src/Translator_Hooks.cs"
+  ],
+  "manualCompileSourceCount": 7,
+  "baselineSource": "baseline/ManagedHookManager.cs",
+  "baselineIsMixedWholeManagerWiringControl": true,
+  "baselineMarker": "CAUSAL_REGRESSION: genuine Apply attempted Translate preparation before game-owned initialization.",
+  "candidateGroups": [
+    "Translation.OtherComponent",
+    "Translation.MasterPreAndOutputs",
+    "Translation.PublishedBeforeAnyApply",
+    "Translation.ReentrantLoads",
+    "Translation.PreparationAndApplyFailures",
+    "Translation.ReentrantUnload",
+    "Translation.CrossThreadUnload",
+    "Translation.UndoFailureRetainsOwner",
+    "Translation.ProviderVetoesAreObserved",
+    "Translation.UndoAndDiagnosticFailureStillCleans",
+    "Translation.UnexpectedDiagnosticFailurePairing",
+    "Translation.OriginalFailurePairing",
+    "Translation.BindingFailurePairing",
+    "Translation.UnloadBeforeFirstMaster"
+  ],
+  "privateSdkOrGameAssetsIncluded": false,
+  "fullSdkOrGameQualified": false
+}
