@@ -1,0 +1,80 @@
+name: Deferred translation startup checks
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ['translation-startup/**', '.github/workflows/translation-startup-checks.yml']
+  push:
+    branches: ['codex/deferred-translation-startup-20261126']
+    paths: ['translation-startup/**', '.github/workflows/translation-startup-checks.yml']
+permissions:
+  contents: read
+jobs:
+  controlled-source:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [baseline, candidate]
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: translation-startup
+    env:
+      DOTNET_ADD_GLOBAL_TOOLS_TO_PATH: 'false'
+      DOTNET_GENERATE_ASPNET_CERTIFICATE: 'false'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE: 'true'
+      MSBUILDDISABLENODEREUSE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.300'
+      - name: Verify source and build the standalone fixture
+        env:
+          DOTNET_CLI_HOME: '${{ runner.temp }}/translation-${{ matrix.variant }}/home'
+          TEMP: '${{ runner.temp }}/translation-${{ matrix.variant }}/temp'
+          TMP: '${{ runner.temp }}/translation-${{ matrix.variant }}/temp'
+          NUGET_PACKAGES: '${{ runner.temp }}/translation-${{ matrix.variant }}/packages'
+          NUGET_HTTP_CACHE_PATH: '${{ runner.temp }}/translation-${{ matrix.variant }}/http'
+          NUGET_SCRATCH: '${{ runner.temp }}/translation-${{ matrix.variant }}/scratch'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $work = Join-Path '${{ runner.temp }}' 'translation-${{ matrix.variant }}'
+          New-Item -ItemType Directory -Force -Path $env:TEMP | Out-Null
+          python CheckFixture.py inputs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $manager = if ('${{ matrix.variant }}' -eq 'baseline') { 'baseline/ManagedHookManager.cs' } else { 'src/ManagedHookManager.cs' }
+          $common = @('-p:ImportDirectoryBuildProps=false','-p:ImportDirectoryBuildTargets=false','-p:NuGetAudit=false', '-p:UseSharedCompilation=false','-p:BuildInParallel=false', "-p:ManagerSource=$manager", "-p:BaseIntermediateOutputPath=$work/obj/", "-p:MSBuildProjectExtensionsPath=$work/obj/", "-p:BaseOutputPath=$work/bin/")
+          dotnet restore TranslationStartupChecks.csproj --configfile NuGet.Config --packages $env:NUGET_PACKAGES --disable-parallel --disable-build-servers @common
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build TranslationStartupChecks.csproj --configuration Release --no-restore --disable-build-servers -m:1 -nr:false -p:DebugType=portable -p:TreatWarningsAsErrors=true @common
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Observe the actual fixture result and distinct RED or GREEN oracle
+        env:
+          DOTNET_CLI_HOME: '${{ runner.temp }}/translation-${{ matrix.variant }}/home'
+          TEMP: '${{ runner.temp }}/translation-${{ matrix.variant }}/temp'
+          TMP: '${{ runner.temp }}/translation-${{ matrix.variant }}/temp'
+          NUGET_PACKAGES: '${{ runner.temp }}/translation-${{ matrix.variant }}/packages'
+          NUGET_HTTP_CACHE_PATH: '${{ runner.temp }}/translation-${{ matrix.variant }}/http'
+          NUGET_SCRATCH: '${{ runner.temp }}/translation-${{ matrix.variant }}/scratch'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
+          $work = Join-Path '${{ runner.temp }}' 'translation-${{ matrix.variant }}'
+          $arguments = @("$work/bin/Release/net10.0/TranslationStartupChecks.dll")
+          if ('${{ matrix.variant }}' -eq 'baseline') { $arguments += '--baseline-apply' }
+          & dotnet @arguments 2>&1 | Tee-Object -FilePath "$work/run.log"
+          $raw = $LASTEXITCODE
+          python CheckFixture.py log '${{ matrix.variant }}' "$work/run.log" "$raw"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python CheckFixture.py inputs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: 'translation-${{ matrix.variant }}-text'
+          path: '${{ runner.temp }}/translation-${{ matrix.variant }}/run.log'
+          if-no-files-found: ignore
+          retention-days: 7

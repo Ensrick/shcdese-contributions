@@ -1,0 +1,18 @@
+--- qualified/TranslationStartupChecks.csproj
++++ TranslationStartupChecks.csproj
+@@ -1,5 +1,6 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+   <PropertyGroup>
++    <ManagerSource Condition="'$(ManagerSource)' == ''">src/ManagedHookManager.cs</ManagerSource>
+     <OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework>
+     <LangVersion>latest</LangVersion><Nullable>annotations</Nullable>
+     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+@@ -14,7 +15,7 @@
+     <Compile Include="src/TranslationHookStartup.cs" />
+     <Compile Include="src/Translator_Hooks.cs" />
+     <Compile Include="src/NoesisGUI_Hooks.cs" />
+-    <Compile Include="src/ManagedHookManager.cs" />
++    <Compile Include="$(ManagerSource)" />
+     <Compile Include="fixture/ApplyLeaves.cs" />
+     <Compile Include="fixture/TranslationStartupCases.cs" />
+   </ItemGroup>
