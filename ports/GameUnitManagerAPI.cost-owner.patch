@@ -1,0 +1,87 @@
+--- a/src/SHCDESE.BepInEx/API/GameUnitManagerAPI.cs
++++ b/src/SHCDESE.BepInEx/API/GameUnitManagerAPI.cs
+@@ -75,6 +75,10 @@
+     /// All unit gold costs
+     /// </summary>
+     internal ManagedDictionary<eChimps, int> _unitGoldCostsDict;
++
++    // One fixed SE owner coordinates supported physical cost writes and scratch
++    // restoration. It is not a public provider registry or native-entry capability.
++    internal readonly NativeRecruitmentCostOwner RecruitmentCosts;
+ 
+     /// <summary>
+     /// All unit fire damage values
+@@ -194,6 +198,7 @@
+             [eChimps.CHIMP_TYPE_BEDOUIN_AMBUSHER] = 130
+         };
+         _unitGoldCostsDict = new ManagedDictionary<eChimps, int>(initialGoldCosts, 0);
++        RecruitmentCosts = new NativeRecruitmentCostOwner(new RecruitmentCostStorage(this));
+ 
+         Dictionary<eChimps, int> initialFireDamage = new Dictionary<eChimps, int>()
+         {
+@@ -254,8 +259,7 @@
+         Instance._rangedBoltDamageArray.ClearOverrides();
+         Instance._rangedJavelinDamageArray.ClearOverrides();
+         Instance._rangedSlingerDamageArray.ClearOverrides();
+-        Instance._euUnitsGoodTypeCostsArray.ClearOverrides();
+-        Instance._unitGoldCostsDict.ClearOverrides();
++        Instance.RecruitmentCosts.ClearForUnload();
+         Instance._healthDefaultsArray.ClearOverrides();
+         Instance._speedDefaultsArray.ClearOverrides();
+         Instance._unitBedouinHealingDict.ClearOverrides();
+@@ -902,8 +906,7 @@
+     [LuaApiExport("SetGoldCost")]
+     public void SetUnitGoldCost(eChimps chimp, int value)
+     {
+-        _unitGoldCostsDict.SetValue(chimp, value);
+-        _unitsGoldCostsArray.SetValue((int)chimp, value);
++        RecruitmentCosts.SetGold((int)chimp, value);
+     }
+ 
+     /// <summary>
+@@ -930,7 +933,44 @@
+     {
+         int index = (chimp - eChimps.CHIMP_TYPE_ARCHER);
+         LogHelper.Debug($"Setting chimp {chimp} cost to {costs.ToString()} at 0x{new IntPtr(&_euUnitsGoodTypeCostsArray.GetBaseAddress().Pointer[index])}");
+-        _euUnitsGoodTypeCostsArray.SetValue(index, costs);
++        RecruitmentCosts.SetGoods((int)chimp, RecruitmentCostStorage.Copy(costs));
++    }
++
++    // The fixed trusted leaf adapter contains no logging, callbacks, engine
++    // monitor acquisition or native calls. Public gold/goods getters stay exact:
++    // dictionary view versus physical memory is an intentional existing difference.
++    private sealed class RecruitmentCostStorage : INativeRecruitmentCostStorage
++    {
++        private readonly GameUnitManagerAPI host;
++        internal RecruitmentCostStorage(GameUnitManagerAPI host) { this.host = host; }
++        public int ReadPhysicalGold(int carrier) => host._unitsGoldCostsArray.GetBaseAddress().Pointer[carrier];
++        public NativeRecruitmentGoods ReadPhysicalGoods(int carrier) =>
++            Copy(host._euUnitsGoodTypeCostsArray.GetBaseAddress().Pointer[carrier - 22]);
++        public void WritePhysicalGold(int carrier, int value) =>
++            host._unitsGoldCostsArray.GetBaseAddress().Pointer[carrier] = value;
++        public void WritePhysicalGoods(int carrier, NativeRecruitmentGoods value) =>
++            host._euUnitsGoodTypeCostsArray.GetBaseAddress().Pointer[carrier - 22] = Expand(value);
++        public void SetConfiguredGold(int carrier, int value)
++        {
++            host._unitGoldCostsDict.SetValue((eChimps)carrier, value);
++            host._unitsGoldCostsArray.SetValue(carrier, value);
++        }
++        public void SetConfiguredGoods(int carrier, NativeRecruitmentGoods value)
++        {
++            eChimps chimp = (eChimps)carrier;
++            int index = (chimp - eChimps.CHIMP_TYPE_ARCHER);
++            host._euUnitsGoodTypeCostsArray.SetValue(index, Expand(value));
++        }
++        public void ClearConfiguredOverrides()
++        {
++            host._euUnitsGoodTypeCostsArray.ClearOverrides();
++            host._unitGoldCostsDict.ClearOverrides();
++        }
++        internal static NativeRecruitmentGoods Copy(UnitGoodCosts value) => new NativeRecruitmentGoods(
++            (int)value.cost1, (int)value.cost2, (int)value.cost3, (int)value.cost4);
++        private static UnitGoodCosts Expand(NativeRecruitmentGoods value) => new UnitGoodCosts {
++            cost1 = (eGoods32)value.First, cost2 = (eGoods32)value.Second,
++            cost3 = (eGoods32)value.Third, cost4 = (eGoods32)value.Horse };
+     }
+ 
+     /// <summary>

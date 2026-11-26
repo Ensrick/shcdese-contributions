@@ -1,0 +1,101 @@
+name: Isolated cost-owner checks
+
+on:
+  push:
+    branches: ['codex/native-recruitment-cost-owner-20261121']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_ADD_GLOBAL_TOOLS_TO_PATH: 'false'
+  DOTNET_GENERATE_ASPNET_CERTIFICATE: 'false'
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
+  MSBUILDDISABLENODEREUSE: '1'
+
+jobs:
+  cost-owner:
+    name: Cost owner (${{ matrix.mode }}, ${{ matrix.framework }})
+    runs-on: windows-latest
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mode: Source
+            framework: net10.0
+          - mode: Binary
+            framework: net10.0
+          - mode: Binary
+            framework: net481
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        if: matrix.mode == 'Source'
+        with:
+          repository: Ensrick/redbird-contributions
+          ref: 3a9377e1774ac93b9824295604d0a0d9ad9a376f
+          path: .local/redbird-source
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/RedBird.Core/Memory/Managed/ManagedNativeArray.cs
+            /src/RedBird.Core/Memory/Managed/ManagedDictionary.cs
+            /src/RedBird.Core/Memory/NativePointer.cs
+            /LICENSE.txt
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - name: Prepare released public Core
+        if: matrix.mode == 'Binary'
+        shell: pwsh
+        run: ./tools/Prepare-PublicCore.ps1 -OutputDirectory "$env:RUNNER_TEMP/public-core-fixture"
+      - name: Compile and execute the same production-kernel cases
+        shell: pwsh
+        run: ./tools/Invoke-QualificationChecks.ps1 -Mode '${{ matrix.mode }}' -TargetFramework '${{ matrix.framework }}' -ResultDirectory "$env:RUNNER_TEMP/cost-owner-results" -RedBirdSourceRoot "$env:GITHUB_WORKSPACE/.local/redbird-source" -RedBirdCorePath "$env:RUNNER_TEMP/public-core-fixture/RedBird.Core.dll"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cost-owner-${{ matrix.mode }}-${{ matrix.framework }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/cost-owner-results/inputs.json
+            ${{ runner.temp }}/cost-owner-results/result.json
+            ${{ runner.temp }}/cost-owner-results/execution.log
+            ${{ runner.temp }}/cost-owner-results/runtime-provider.json
+            ${{ runner.temp }}/cost-owner-results/host.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  guarded-frame:
+    name: Guarded frame (Windows X64)
+    runs-on: windows-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - name: Prepare exact public frame dependencies
+        shell: pwsh
+        run: ./tools/Prepare-PublicCore.ps1 -OutputDirectory "$env:RUNNER_TEMP/public-frame-fixture" -IncludeFrameReferences
+      - name: Execute selected scope and owned-page frame cases
+        shell: pwsh
+        run: ./tools/Invoke-QualificationChecks.ps1 -Suite GuardedFrame -Mode Binary -ResultDirectory "$env:RUNNER_TEMP/frame-results" -PublicExtenderDir "$env:RUNNER_TEMP/public-frame-fixture"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: guarded-frame-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/frame-results/inputs.json
+            ${{ runner.temp }}/frame-results/result.json
+            ${{ runner.temp }}/frame-results/execution.log
+            ${{ runner.temp }}/frame-results/runtime-provider.json
+            ${{ runner.temp }}/frame-results/host.json
+          if-no-files-found: warn
+          retention-days: 7

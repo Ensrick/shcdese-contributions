@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <UseAppHost>false</UseAppHost>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <RunAnalyzers>false</RunAnalyzers>
+    <NuGetAudit>false</NuGetAudit>
+    <Nullable>annotations</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <LangVersion>latest</LangVersion>
+    <TieredCompilation>false</TieredCompilation>
+    <StartupObject>Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="candidate/NativeRecruitmentCostOwner.cs" />
+    <Compile Include="candidate/EuropeanRecruitmentAdmission.cs" />
+    <Compile Include="candidate/EuropeanRecruitmentAdmissionStub.cs" />
+    <Compile Include="candidate/EuropeanRecruitmentFinalAdmission.cs" />
+    <Compile Include="reentrancy-source-1/fixture/Program.cs" />
+    <Compile Include="fixture/FinalAdmissionCases.cs" />
+    <Reference Include="Iced"><HintPath>$(PublicExtenderDir)/Iced.dll</HintPath></Reference>
+    <Reference Include="RedBird.Abstractions"><HintPath>$(PublicExtenderDir)/RedBird.Abstractions.dll</HintPath></Reference>
+    <Reference Include="RedBird.Core"><HintPath>$(PublicExtenderDir)/RedBird.Core.dll</HintPath></Reference>
+    <Reference Include="RedBird.X64"><HintPath>$(PublicExtenderDir)/RedBird.X64.dll</HintPath></Reference>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions"><HintPath>$(PublicExtenderDir)/Microsoft.Extensions.Logging.Abstractions.dll</HintPath></Reference>
+  </ItemGroup>
+  <Target Name="RequireAdmittedPublicBundle" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(PublicExtenderDir)' == '' or !Exists('$(PublicExtenderDir)/RedBird.X64.dll')" Text="Supply the admitted public bundle directory; no installed-folder fallback is permitted." />
+  </Target>
+</Project>

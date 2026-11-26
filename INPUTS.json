@@ -1,0 +1,235 @@
+{
+  "schema": "selected-se-cost-owner-qualification-inputs/1",
+  "scope": "Selected internally owned production source and controlled fixtures, without full SDK history, proprietary game inputs or private workspace evidence.",
+  "upstreamScriptExtender": "https://gitlab.com/rawra-stronghold-crusader/shcde-script-extender",
+  "upstreamSourceTag": "v2.14.4",
+  "sourceReview": "Independent source/data review complete; compilation and runtime results pending.",
+  "productionFiles": [
+    {
+      "path": "CostOwnerChecks.csproj",
+      "bytes": 2779,
+      "sha256CRLF": "ffc06df0c32e0989069f9c22a746260e29746e479caa0d5c530eb718751c6394",
+      "sha256LF": "d02bd28290d4244bcd7d211d777a97a8177d7acaa14c13d3ea9f2bb3208648de"
+    },
+    {
+      "path": "NuGet.Remote.Config",
+      "bytes": 131,
+      "sha256CRLF": "652624e1ac15698be31dc7bc90a74b1fcc4314c387551013c61fb3a113843d28",
+      "sha256LF": "5256a7e3e07d2c5c94f7a1e6c45f39aab011c659c5e2d53e452dea525ce04575"
+    },
+    {
+      "path": "candidate/NativeRecruitmentCostOwner.cs",
+      "bytes": 15413,
+      "sha256CRLF": "f6fa56a1411cd35cfe809a7d5089e77a333f0fd9ec94f96664e263e5a7f6b9d2",
+      "sha256LF": "cf627ee9a1ea0a98982081ef3df271b5c60c2885a351c5a12ab9906f7e5b0d7c"
+    },
+    {
+      "path": "candidate/EuropeanRecruitmentAdmission.cs",
+      "bytes": 24989,
+      "sha256CRLF": "6485622f4353ea79e9d80cc11c7d0757e1070beb15067d2c7ebdb92f546877de",
+      "sha256LF": "58798c742023b239a98af5bc1d50fa69568c3b5a9fdc668383c659b2898d51ba"
+    },
+    {
+      "path": "candidate/EuropeanRecruitmentFinalAdmission.cs",
+      "bytes": 10210,
+      "sha256CRLF": "3ad9e6bf20a9adc4dde97e2020aa51a7e7b8c7115e658063d6744f7afcd69fba",
+      "sha256LF": "7b23a15ae9e9cdbcd356b972d4face3c42b570c84be5d2f958e9dfad683743ca"
+    },
+    {
+      "path": "fixture/CostOwnerCases.cs",
+      "bytes": 23597,
+      "sha256CRLF": "72c8467a4a620a252f7d41b78649e1d0a42ebd04fb2bc8b59b0512f9b81dd1c7",
+      "sha256LF": "69449af2e47fb6dd0797e02671cae957b95980b67fb9a3ee564e025c1d59c1fa",
+      "originalFrozenSha256CRLF": "bb7e6296d3a1f1973dfe36f9a75df52e25d807b750727e54867f9f7034ed0780",
+      "qualificationDelta": "Root adds argument-based loaded-provider SHA/MVID and actual CLR/pointer-width reporting before unchanged14groups; no production source or group body changes."
+    },
+    {
+      "path": "GuardedFrameChecks.csproj",
+      "bytes": 2191,
+      "sha256CRLF": "1f9124aabbac20cb566033233c7369447c1b5285d24983cda568694a4e2b7ce9",
+      "sha256LF": "289ac3c775479551142c4435c3b79bd82b4021805ac087c5bac1ed8d10a48390"
+    },
+    {
+      "path": "candidate/EuropeanRecruitmentAdmissionStub.cs",
+      "bytes": 17993,
+      "sha256CRLF": "f24a9635e94fcf35c074ce8089219bfa62a6ce57b1041aba42adae8c7eef624c",
+      "sha256LF": "449c52877cc5e8abca10296e56f34cde67997a4fe52aa27f38eabf1593dc021c"
+    },
+    {
+      "path": "fixture/FinalAdmissionCases.cs",
+      "bytes": 17224,
+      "sha256CRLF": "3b52596bf8c8cf800c18750add676db651ec3c702b95d92a35f199b0d5ab865b",
+      "sha256LF": "bf2ec261f7de852d2ae8e5ce1c50d332b21c9184bcb3b10c273ff6f5d979ce1b",
+      "originalFrozenSha256CRLF": "4080d01a0b816d8d21bacc1f3cbcaf3f48b6ad1089a00f37d925aad240b2d77f",
+      "qualificationDelta": "Explicit zero initialization of fixture Good3 prevents CS0649 under warnings-as-errors; default data and all groups unchanged."
+    },
+    {
+      "path": "reentrancy-source-1/fixture/Program.cs",
+      "bytes": 80315,
+      "sha256CRLF": "ac7a77f38d9156cf35020ef2853cf8ac65e457fd1ed6b6835eb9aecfd3a2bf20",
+      "sha256LF": "a2336e5a48c2eb390c76da44aabbd6986baf8517d89d82cfabe2fc43cf5b0002",
+      "originalFrozenSha256CRLF": "20763e79670192cff97cc34752609cc0b1748313e0bd6ec3acec3ede14ff47c8",
+      "qualificationDelta": "Root retains loaded-five-provider SHA/MVID and CLR/pointer prologue before the unchanged44-group candidate; no group bodies changed."
+    },
+    {
+      "path": "ports/GameUnitManagerAPI.cost-owner.patch",
+      "bytes": 4419,
+      "sha256LF": "71f60c7ae93e73d95ed76a9f77fd882c55209654b462c69639d327b0d40a894f",
+      "sha256CRLF": "108723b8b1ccc0eba49925290d66a51406d2d2aa628aea71bc7cfb78f3c7c82e"
+    }
+  ],
+  "publicCoreArchive": {
+    "url": "https://gitlab.com/api/v4/projects/74440776/packages/generic/shcdese/2.14.4/SHCDESE.zip",
+    "bytes": 60330646,
+    "sha256": "c993c40ea3a74c6fc03d120d0161e8c654cb11ed72509dda2c0e3ca0fc4b80e9"
+  },
+  "publicCore": {
+    "name": "RedBird.Core.dll",
+    "entry": "BepInEx/plugins/000shcdese/RedBird.Core.dll",
+    "bytes": 119296,
+    "sha256": "ee4b036c486077f7d8898ae054f124edde73e6ae1a059e8991c361e2b720d29f"
+  },
+  "publicSource": {
+    "repository": "Ensrick/redbird-contributions",
+    "commit": "3a9377e1774ac93b9824295604d0a0d9ad9a376f",
+    "files": [
+      {
+        "path": "src/RedBird.Core/Memory/Managed/ManagedNativeArray.cs",
+        "sha256CRLF": "040f8014c3ba377ee4f8ec52edd44429d63749ffc1ad5b84a570490503cd3985",
+        "sha256LF": "e5185ad922bb564c740e4998a0087ef636ebc4044cc1102a6dce92f7458bb73b"
+      },
+      {
+        "path": "src/RedBird.Core/Memory/Managed/ManagedDictionary.cs",
+        "sha256CRLF": "523151fc0a0f774c98aa689d0b2fc7208804d9aec38cd3bdfa844445d9ecfb57",
+        "sha256LF": "124a49d47a655288f177253074faf7d819805bfc9f804845c51abf9e19fa5d22"
+      },
+      {
+        "path": "src/RedBird.Core/Memory/NativePointer.cs",
+        "sha256CRLF": "73d172b81bacac2bdeb5173fb2f4fe2ed6af306457878081fae5af81135096fa",
+        "sha256LF": "508e993d194bfbb799564bad1c610f89bcaa854bf95c6809acb567a88e6ddedf"
+      }
+    ]
+  },
+  "expectedCostOwnerGroups": 14,
+  "limits": [
+    "Does not compile GameUnitManagerAPI or the complete SDK.",
+    "Does not run a native purchase, live reader, material settlement or installed game.",
+    "Controlled storage faults are fixture injections."
+  ],
+  "expectedGroupNames": [
+    "DefaultViewsAndOrdinarySetterDomain",
+    "PhysicalReadAndNoSetterRestoration",
+    "SameValueIntentAndActualCoreFirstTouchReset",
+    "ChangedIntentAndOldCloseCannotResurrect",
+    "ActualOverlayClearInvalidatesAndUnmasks",
+    "NestedAndContendingBeginRefuseBeforeWrite",
+    "ForeignSetterCompletesDuringCallerInterval",
+    "PartialBeginRestoresIndependentComponents",
+    "GoldDictionaryThenPhysicalFailureIsUncertain",
+    "ControlledPostWriteFailureAndUnknownIntent",
+    "WrongThreadAndIndependentEndFailures",
+    "ActualOwnedEntryRetainsBothChecksAndIntent",
+    "ActualOwnedEntryPreflightBeforeScratch",
+    "ActualOwnedEntryDemandInvalidationBeforeCallable"
+  ],
+  "publicFrameReferences": [
+    {
+      "name": "Iced.dll",
+      "entry": "BepInEx/plugins/000shcdese/Iced.dll",
+      "bytes": 1894912,
+      "sha256": "cc915d1c2e7be60933c5b129842ca3d08d1fe3cda6c6d6ade8824dcdde16191f"
+    },
+    {
+      "name": "RedBird.Abstractions.dll",
+      "entry": "BepInEx/plugins/000shcdese/RedBird.Abstractions.dll",
+      "bytes": 28160,
+      "sha256": "339cece116f66f59ecc7da5e9a5c0b2dfe24f4e7a5e7efc005864fa77c027a1e"
+    },
+    {
+      "name": "RedBird.Core.dll",
+      "entry": "BepInEx/plugins/000shcdese/RedBird.Core.dll",
+      "bytes": 119296,
+      "sha256": "ee4b036c486077f7d8898ae054f124edde73e6ae1a059e8991c361e2b720d29f"
+    },
+    {
+      "name": "RedBird.X64.dll",
+      "entry": "BepInEx/plugins/000shcdese/RedBird.X64.dll",
+      "bytes": 173568,
+      "sha256": "e085b83b2b87b5d2142c980090d8d9ec616a90a443bd125c17b41e0bb47a44eb"
+    },
+    {
+      "name": "Microsoft.Extensions.Logging.Abstractions.dll",
+      "entry": "BepInEx/plugins/000shcdese/Microsoft.Extensions.Logging.Abstractions.dll",
+      "bytes": 69968,
+      "sha256": "2ffe4217a536b447ba35ca5b6ad79b3a43dd3041dab07b266615780786a33c17"
+    }
+  ],
+  "expectedGuardedGroupNames": [
+    "Scope.InvalidBoundaryNeverPublishesDemandOrCallsOriginal",
+    "Scope.NativeArgumentsAndFinalCandidateFollowOwnedOrder",
+    "Scope.RawZeroWithoutSelectionIsNotARejectionCertificate",
+    "Scope.CoherentAllowRequiresTheSelectedNativeReturn",
+    "Scope.FalseAndPredicateExceptionCanCertifyOnlyCoherentAbort",
+    "Scope.RejectionNeedsNormalZeroNativeReturn",
+    "Scope.DuplicateAndRecursiveSitesCannotCertify",
+    "Scope.CandidateMismatchAndPostAdmissionMutationAreUnknown",
+    "Scope.ContextChangesCannotCertifyRejection",
+    "Scope.LegacyReadAndFrameFaultsRemainUnknown",
+    "Scope.NestedOwnedCallCannotReplaceOuterAttempt",
+    "Scope.RealForeignThreadCannotBorrowOwnedAttempt",
+    "Scope.DemandPublicationAndRetirementFaultsClearTls",
+    "Scope.TerminalResultsRemainImmutableAfterLaterCalls",
+    "Final.KnownUnavailableReaderRefusesBeforeEntry",
+    "Final.DefaultAndMissingProofNeverReachAdmission",
+    "Final.ValidProofFollowsLegacyAndPrecedesAdmission",
+    "Final.CoherentFalseOrThrowRetainsOnlyNarrowAbortEvidence",
+    "Final.LegacyGoldSpendRefusesBeforeAdmission",
+    "Final.DuplicateGoodsNeedAggregatedCurrentStock",
+    "Final.HorseClaimAndStalePrefixCacheRefuse",
+    "Final.CurrentTableAndActualTailOperandsMustBothMatch",
+    "Final.RestoredBillHistoryDoesNotInventAnEpoch",
+    "Final.WorldOwnerMonitorSaveAndLifecycleDriftRefuse",
+    "Final.ThrowingReaderNeverReachesAdmission",
+    "Final.StableIdsDoNotHideDeadOrIneligibleSelectedUnits",
+    "Final.TaintedCandidateOrProofCannotReachAdmission",
+    "Final.PostAdmissionDriftNeverBecomesRefundEvidence",
+    "Final.SelectedSiteAndRawReturnCannotBeReplayed",
+    "Final.NoOwnedScopeDoesNotCallNewLeaves",
+    "Stub.DormantMatchesIndependentRealRedBirdBaseline",
+    "Stub.DemandWithoutOwnedScopeUsesLegacyOnce",
+    "Stub.OwnedAllowRestoresStateThenReplays",
+    "Stub.OwnedRefusalRestoresStateBeforeAbort",
+    "Stub.OwnedPredicateExceptionRestoresStateBeforeAbort",
+    "Stub.InvalidPrefixAndBoundsEmitNothing",
+    "Stub.OwnedRecursiveGeneratedFrameAbortsWithoutInnerTail",
+    "Stub.GuardSuppressedPreDispatchFaultDefaultsToAbort",
+    "Trace.OwnedAllowRecordsExactSchedulingStores",
+    "Trace.DormantAndNoScopeMatchIndependent63ByteBaseline",
+    "Trace.RejectionLeavesTraceAndRecordsUntouched",
+    "Trace.RecursiveDispatchPreventsOuterCompletion",
+    "Trace.RepeatedOrTamperedCellRefusesScheduling",
+    "Trace.InvalidDisplacementEmitsNothing"
+  ],
+  "expectedGuardedGroups": 44,
+  "costOwnerSdkPort": {
+    "baseRepository": "https://gitlab.com/rawra-stronghold-crusader/shcde-script-extender",
+    "baseRevision": "7c3a252794974ee7af5cca02f446ba994fb9d22d",
+    "targetPath": "src/SHCDESE.BepInEx/API/GameUnitManagerAPI.cs",
+    "baseGitBlob": "75ea5bdfe80bec4fc99791fa379444597f7788f8",
+    "baseSha256LF": "dc69c749f95351a4128adbe2db982e9b9d6dd518c4246180a07d37fca9d243e8",
+    "baseSha256CRLF": "b94bdd1d7747943bd129fae1020130d82dcbd3b1d608b2cd1ebeb6a8e9190a9c",
+    "utf8BomPreserved": true,
+    "patchPath": "ports/GameUnitManagerAPI.cost-owner.patch",
+    "patchedSha256LF": "8d7fbccd0bba391e04652ffbe14c0acbffd7f48b0b52f0567bcd3f45fa8de4fc",
+    "patchedSha256CRLF": "8c0fa6af84440913fab8fa28b350263b7e26fbb3194e2287d6d4c59a7e7ed3c7",
+    "kernelSourcePath": "candidate/NativeRecruitmentCostOwner.cs",
+    "kernelTargetPath": "src/SHCDESE.BepInEx/API/NativeRecruitmentCostOwner.cs",
+    "kernelSha256LF": "cf627ee9a1ea0a98982081ef3df271b5c60c2885a351c5a12ab9906f7e5b0d7c",
+    "kernelSha256CRLF": "f6fa56a1411cd35cfe809a7d5089e77a333f0fd9ec94f96664e263e5a7f6b9d2",
+    "licenseFiles": [
+      "LICENSE.txt",
+      "COPYING.GPLv3.txt"
+    ],
+    "scope": "Full cost-owner adapter only; no native admission producer, new hook or feature availability."
+  }
+}
